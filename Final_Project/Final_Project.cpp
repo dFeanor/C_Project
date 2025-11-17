@@ -1,20 +1,48 @@
-﻿// Final_Project.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
-
+﻿#include "Picture.h"
 #include <iostream>
 
-int main()
-{
-    std::cout << "Hello World!\n";
+int main() {
+    Picture originalImage;
+
+    // 1. Загружаем исходное изображение
+    if (!originalImage.loadFromFile("picture_2d.raw", false)) {
+        return 1;
+    }
+
+    std::cout << "\n--- Original Image Info ---" << std::endl;
+    originalImage.PrintPicture();
+
+    // 2. Создаем пустой объект для хранения подобласти
+    Picture subregionImage;
+
+    // 3. Вырезаем подобласть:
+    //    Предположим, мы хотим вырезать квадрат 50x50 пикселей,
+    //    начиная с координат (10, 20)
+    uint64_t startX = 10;
+    uint64_t startY = 20;
+    uint64_t size = 50;
+
+    if (originalImage.extractSubregion(subregionImage, startX, startY, size)) {
+        std::cout << "\n--- Extracted Subregion Info ---" << std::endl;
+        subregionImage.PrintPicture();
+
+        // 4. Сохраняем вырезанную подобласть в новый файл
+        std::string subregionFilename = "subregion_" + std::to_string(startX) + "_" + std::to_string(startY) + "_s" + std::to_string(size) + ".raw";
+        if (subregionImage.saveToFile(subregionFilename)) {
+            std::cout << "Subregion saved to " << subregionFilename << std::endl;
+        }
+        else {
+            std::cerr << "Failed to save subregion." << std::endl;
+        }
+    }
+    else {
+        std::cerr << "Failed to extract subregion." << std::endl;
+    }
+
+    // Пример ошибки: попытка вырезать за пределами изображения
+    std::cout << "\n--- Attempting to extract an invalid subregion ---" << std::endl;
+    Picture invalidSubregion;
+    originalImage.extractSubregion(invalidSubregion, originalImage.getDim2() - 10, originalImage.getDim1() - 10, 20); // Выходит за границы
+
+    return 0;
 }
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.

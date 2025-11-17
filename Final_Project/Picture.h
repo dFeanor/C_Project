@@ -12,6 +12,14 @@ public:
 
     bool loadFromFile(const std::string& filePath, bool is3D = false);
 
+    bool saveToFile(const std::string& filePath) const;
+
+    // Ќовый метод дл€ вырезани€ квадратной подобласти
+    // ѕринимает пустой объект Picture по ссылке дл€ заполнени€,
+    // координаты верхнего левого угла (startX, startY) и размер стороны квадрата (size).
+    // ¬озвращает true в случае успеха, false в случае ошибки (например, неверные координаты).
+    bool extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t startY, uint64_t size) const;
+
     //uint64_t Ч это 64-битный (строго 8 байт) беззнаковый целочисленный тип данных в C++, который хранит целые числа
     uint64_t getDim1() const;
     uint64_t getDim2() const;

@@ -69,6 +69,125 @@ bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
     return true;
 }
 
+// Реализация метода для сохранения 2D изображения в файл
+bool Picture::saveToFile(const std::string& filePath) const {
+    // --- Шаг 1: Проверки ---
+    if (pixels == nullptr) {
+        std::cerr << "Error: Cannot save an empty picture." << std::endl;
+        return false;
+    }
+    // Этот метод предназначен для 2D-формата, который вы описали
+    if (N3 > 0) {
+        std::cerr << "Error: saveToFile is implemented for 2D images only." << std::endl;
+        return false;
+    }
+
+    // --- Шаг 2: Открытие файла для записи ---
+    // std::ofstream - output file stream
+    // std::ios::binary - обязательный флаг для бинарной записи
+    std::ofstream file(filePath, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file for writing: " << filePath << std::endl;
+        return false;
+    }
+
+    // --- Шаг 3: Запись заголовка ---
+    // Метод write принимает указатель на char, поэтому используем reinterpret_cast
+    file.write(reinterpret_cast<const char*>(&N1), sizeof(N1));
+    file.write(reinterpret_cast<const char*>(&N2), sizeof(N2));
+    file.write(reinterpret_cast<const char*>(&resolution), sizeof(resolution));
+
+    // --- Шаг 4: Запись пикселей ---
+    uint64_t totalPixels = N1 * N2;
+    file.write(reinterpret_cast<const char*>(pixels), totalPixels);
+
+    // Проверяем, не возникло ли ошибок во время записи
+    if (!file) {
+        std::cerr << "Error: An error occurred while writing to file: " << filePath << std::endl;
+        return false;
+    }
+
+    // Файл закроется автоматически, когда объект 'file' выйдет из области видимости
+
+    std::cout << "Successfully saved image to " << filePath << std::endl;
+    return true;
+}
+
+
+// Реализация метода для вырезания квадратной подобласти
+bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t startY, uint64_t size) const {
+    // --- Шаг 1: Проверки исходного изображения ---
+    if (pixels == nullptr) {
+        std::cerr << "Error: Cannot extract subregion from an empty picture. Load a file first." << std::endl;
+        return false;
+    }
+    if (N3 > 0) {
+        std::cerr << "Error: extractSubregion is implemented for 2D images only. Current image is 3D." << std::endl;
+        return false;
+    }
+
+    // --- Шаг 2: Проверки входных параметров ---
+    if (size == 0) {
+        std::cerr << "Error: Subregion size cannot be zero." << std::endl;
+        return false;
+    }
+    if (startX >= N2 || startY >= N1) {
+        std::cerr << "Error: Start coordinates (" << startX << ", " << startY << ") are out of bounds." << std::endl;
+        return false;
+    }
+    if (startX + size > N2 || startY + size > N1) {
+        std::cerr << "Error: Subregion (" << startX << "," << startY << ") with size " << size
+            << " extends beyond image dimensions (" << N2 << ", " << N1 << ")." << std::endl;
+        return false;
+    }
+
+    // --- Шаг 3: Проверка объекта outputPicture ---
+    // Убедимся, что outputPicture пуст, чтобы избежать утечек памяти или перезаписи
+    if (outputPicture.pixels != nullptr) {
+        std::cerr << "Error: Output picture is not empty. Please provide an empty Picture object." << std::endl;
+        return false;
+    }
+
+    // --- Шаг 4: Вычисление размеров новой подобласти ---
+    uint64_t new_N1 = size; // Новые строки = размер квадрата
+    uint64_t new_N2 = size; // Новые столбцы = размер квадрата
+    uint64_t newTotalPixels = new_N1 * new_N2;
+
+    // --- Шаг 5: Выделение памяти для новой подобласти ---
+    unsigned char* newPixelsBuffer = new (std::nothrow) unsigned char[newTotalPixels];
+    if (newPixelsBuffer == nullptr) {
+        std::cerr << "Error: Failed to allocate memory for subregion pixels." << std::endl;
+        return false;
+    }
+
+    // --- Шаг 6: Копирование данных пикселей ---
+    // Итерируемся по каждой строке новой подобласти
+    for (uint64_t r = 0; r < new_N1; ++r) {
+        // Вычисляем индекс начального пикселя в текущей строке ИСХОДНОГО изображения
+        uint64_t sourceRowStartIdx = (startY + r) * N2 + startX;
+        // Вычисляем индекс начального пикселя в текущей строке НОВОГО изображения
+        uint64_t destRowStartIdx = r * new_N2;
+
+        // Копируем всю строку пикселей.
+        // Количество байт для копирования равно new_N2 (размер строки в новой подобласти)
+        std::memcpy(newPixelsBuffer + destRowStartIdx,
+            pixels + sourceRowStartIdx,
+            new_N2 * sizeof(unsigned char));
+    }
+
+    // --- Шаг 7: Заполнение полей outputPicture ---
+    outputPicture.N1 = new_N1;
+    outputPicture.N2 = new_N2;
+    outputPicture.N3 = 0; // Всегда 0 для 2D
+    outputPicture.resolution = this->resolution; // Разрешение обычно наследуется
+    outputPicture.pixels = newPixelsBuffer;
+    outputPicture.wallsAdded = false; // Новое изображение, стенки еще не добавлялись
+
+    std::cout << "Successfully extracted subregion (" << startX << ", " << startY << ") with size " << size
+        << ". New dimensions: " << new_N1 << "x" << new_N2 << std::endl;
+    return true;
+}
+
 void Picture::addWalls() {
     // --- Шаг 1: Проверки ---
     if (pixels == nullptr) {
@@ -125,7 +244,6 @@ void Picture::addWalls() {
 
     std::cout << "Successfully added walls. New dimensions (N1 x N2): " << N1 << " x " << N2 << std::endl;
 }
-
 
 // Реализация геттеров
 size_t Picture::getDim1() const {
