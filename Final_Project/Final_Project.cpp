@@ -2,47 +2,42 @@
 #include <iostream>
 
 int main() {
-    Picture originalImage;
-
-    // 1. Загружаем исходное изображение
-    if (!originalImage.loadFromFile("picture_2d.raw", false)) {
+    Picture image3D;
+    std::string path = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\";
+    // Предполагается, что у вас есть 3D файл "picture_3d.raw"
+    if (!image3D.loadFromFile(path + "picture_3d.raw", true)) {
         return 1;
     }
 
-    std::cout << "\n--- Original Image Info ---" << std::endl;
-    originalImage.PrintPicture();
+    std::cout << "\n--- Original 3D Image Info ---" << std::endl;
+    image3D.PrintPicture();
 
-    // 2. Создаем пустой объект для хранения подобласти
-    Picture subregionImage;
-
-    // 3. Вырезаем подобласть:
-    //    Предположим, мы хотим вырезать квадрат 50x50 пикселей,
-    //    начиная с координат (10, 20)
-    uint64_t startX = 10;
-    uint64_t startY = 20;
-    uint64_t size = 50;
-
-    if (originalImage.extractSubregion(subregionImage, startX, startY, size)) {
-        std::cout << "\n--- Extracted Subregion Info ---" << std::endl;
-        subregionImage.PrintPicture();
-
-        // 4. Сохраняем вырезанную подобласть в новый файл
-        std::string subregionFilename = "subregion_" + std::to_string(startX) + "_" + std::to_string(startY) + "_s" + std::to_string(size) + ".raw";
-        if (subregionImage.saveToFile(subregionFilename)) {
-            std::cout << "Subregion saved to " << subregionFilename << std::endl;
-        }
-        else {
-            std::cerr << "Failed to save subregion." << std::endl;
-        }
-    }
-    else {
-        std::cerr << "Failed to extract subregion." << std::endl;
+    // --- Извлечение и сохранение Z-слайса ---
+    Picture z_slice;
+    // Возьмем 10-й слайс по глубине (ось Z)
+    if (image3D.extractSlice(z_slice, SliceAxis::Z, 10)) {
+        std::cout << "\n--- Z-Slice Info ---" << std::endl;
+        z_slice.PrintPicture();
+        z_slice.saveToFile(path + "z_slice_10.raw");
     }
 
-    // Пример ошибки: попытка вырезать за пределами изображения
-    std::cout << "\n--- Attempting to extract an invalid subregion ---" << std::endl;
-    Picture invalidSubregion;
-    originalImage.extractSubregion(invalidSubregion, originalImage.getDim2() - 10, originalImage.getDim1() - 10, 20); // Выходит за границы
+    // --- Извлечение и сохранение Y-слайса ---
+    Picture y_slice;
+    // Возьмем 25-й горизонтальный слайс (ось Y)
+    if (image3D.extractSlice(y_slice, SliceAxis::Y, 25)) {
+        std::cout << "\n--- Y-Slice Info ---" << std::endl;
+        y_slice.PrintPicture();
+        y_slice.saveToFile(path + "y_slice_25.raw");
+    }
+
+    // --- Извлечение и сохранение X-слайса ---
+    Picture x_slice;
+    // Возьмем 30-й вертикальный слайс (ось X)
+    if (image3D.extractSlice(x_slice, SliceAxis::X, 30)) {
+        std::cout << "\n--- X-Slice Info ---" << std::endl;
+        x_slice.PrintPicture();
+        x_slice.saveToFile(path + "x_slice_30.raw");
+    }
 
     return 0;
 }

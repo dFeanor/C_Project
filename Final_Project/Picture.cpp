@@ -188,6 +188,104 @@ bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t
     return true;
 }
 
+// Реализация метода для извлечения 2D-слайса из 3D-изображения
+bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceIndex) const {
+    // --- Шаг 1: Проверки ---
+    if (pixels == nullptr) {
+        std::cerr << "Error: Cannot extract a slice from an empty picture." << std::endl;
+        return false;
+    }
+    if (N3 == 0) { // Проверяем, что изображение трехмерное
+        std::cerr << "Error: Slices can only be extracted from 3D images." << std::endl;
+        return false;
+    }
+    if (outputSlice.pixels != nullptr) {
+        std::cerr << "Error: Output picture for the slice must be empty." << std::endl;
+        return false;
+    }
+
+    uint64_t new_N1 = 0, new_N2 = 0;
+
+    // --- Шаг 2: Валидация индекса и определение размеров слайса ---
+    switch (axis) {
+    case SliceAxis::X:
+        if (sliceIndex >= N2) {
+            std::cerr << "Error: X-axis slice index " << sliceIndex << " is out of bounds [0, " << N2 - 1 << "]." << std::endl;
+            return false;
+        }
+        new_N1 = N1; // Высота
+        new_N2 = N3; // Ширина (будет из глубины)
+        break;
+    case SliceAxis::Y:
+        if (sliceIndex >= N1) {
+            std::cerr << "Error: Y-axis slice index " << sliceIndex << " is out of bounds [0, " << N1 - 1 << "]." << std::endl;
+            return false;
+        }
+        new_N1 = N2; // Высота (будет из ширины)
+        new_N2 = N3; // Ширина (будет из глубины)
+        break;
+    case SliceAxis::Z:
+        if (sliceIndex >= N3) {
+            std::cerr << "Error: Z-axis slice index " << sliceIndex << " is out of bounds [0, " << N3 - 1 << "]." << std::endl;
+            return false;
+        }
+        new_N1 = N1; // Высота
+        new_N2 = N2; // Ширина
+        break;
+    }
+
+    // --- Шаг 3: Выделение памяти ---
+    uint64_t totalNewPixels = new_N1 * new_N2;
+    unsigned char* newPixels = new (std::nothrow) unsigned char[totalNewPixels];
+    if (newPixels == nullptr) {
+        std::cerr << "Error: Failed to allocate memory for the slice." << std::endl;
+        return false;
+    }
+
+    // --- Шаг 4: Копирование пикселей ---
+    // Данные в 3D хранятся так: [сначала все пиксели для z=0, потом для z=1, ...]
+    // Индекс пикселя (i, j, k) -> k*(N1*N2) + i*N2 + j
+    // где i - строка (Y), j - столбец (X), k - глубина (Z)
+
+    uint64_t currentNewPixel = 0;
+    switch (axis) {
+    case SliceAxis::Z: { // Самый простой случай: данные лежат подряд
+        uint64_t offset = sliceIndex * (N1 * N2);
+        std::memcpy(newPixels, pixels + offset, totalNewPixels);
+        break;
+    }
+    case SliceAxis::Y: { // Фиксируем строку 'i', итерируем по 'j' и 'k'
+        for (uint64_t k = 0; k < N3; ++k) { // Итерация по глубине
+            for (uint64_t j = 0; j < N2; ++j) { // Итерация по ширине
+                uint64_t sourceIndex = k * (N1 * N2) + sliceIndex * N2 + j;
+                newPixels[currentNewPixel++] = pixels[sourceIndex];
+            }
+        }
+        break;
+    }
+    case SliceAxis::X: { // Фиксируем столбец 'j', итерируем по 'i' и 'k'
+        for (uint64_t k = 0; k < N3; ++k) { // Итерация по глубине
+            for (uint64_t i = 0; i < N1; ++i) { // Итерация по высоте
+                uint64_t sourceIndex = k * (N1 * N2) + i * N2 + sliceIndex;
+                newPixels[currentNewPixel++] = pixels[sourceIndex];
+            }
+        }
+        break;
+    }
+    }
+
+    // --- Шаг 5: Заполнение полей выходного объекта ---
+    outputSlice.N1 = new_N1;
+    outputSlice.N2 = new_N2;
+    outputSlice.N3 = 0; // Слайс - это 2D изображение
+    outputSlice.resolution = this->resolution;
+    outputSlice.pixels = newPixels;
+    outputSlice.wallsAdded = false;
+
+    std::cout << "Successfully extracted slice." << std::endl;
+    return true;
+}
+
 void Picture::addWalls() {
     // --- Шаг 1: Проверки ---
     if (pixels == nullptr) {
