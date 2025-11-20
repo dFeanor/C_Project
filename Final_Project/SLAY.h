@@ -18,7 +18,7 @@ namespace Matrixes {
 	class SLAYSolver {
 	public:
 		/**
-		 * @brief Решает СЛАУ Ax=b методом Гаусса.
+		 * @brief Решает СЛАУ Ax=b.
 		 *
 		 * (Здесь будет реализация конкретного метода, который вы выберете)
 		 *
