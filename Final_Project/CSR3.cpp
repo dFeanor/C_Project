@@ -142,7 +142,7 @@ namespace Matrixes {
 			//cout << "rowIndex[0]=" << rowIndex[0] << " rowIndex[1]=" << rowIndex[1] << " rowIndex[2]=" << rowIndex[2] << endl;
 			for (int k = rowIndex[j]; k < rowIndex[j + 1]; k++) {
 				//cout <<"k = (before line j is) " << rowIndex[j] << " elements" << " column = " <<  columns[k] << " values[k]=" << values[k]  << endl;
-				Matr.set_element(columns[k], j, values[k]);
+				Matr.set_elem(columns[k], j, values[k]);
 			}
 		}
 		cout << "Convert success" << endl;
