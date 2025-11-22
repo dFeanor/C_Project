@@ -443,7 +443,7 @@ void Picture::createCylinder(size_t width, size_t height, double radius) {
     std::cout << "Generated Cylinder: " << width << "x" << height << ", R=" << radius << std::endl;
 }
 
-// 3. Генерация цилиндра с замкнутой порой (Бублик)
+//цилиндр с порой посередине
 void Picture::createCylinderWithPore(size_t width, size_t height, double radiusOuter, double radiusInner) {
     delete[] pixels;
     N1 = height;
