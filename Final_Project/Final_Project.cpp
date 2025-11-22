@@ -1,13 +1,16 @@
-﻿#include "Picture.h"
+#include "Picture.h"
 #include <iostream>
+using std::cout;
+
 
 int main() {
-    Picture image2D;
-    std::string path = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\";
+
+    // Picture image2D;
+    // std::string path = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\";
     // Предполагается, что у вас есть 3D файл "picture_3d.raw"
-    if (!image2D.loadFromFile(path + "picture_2d.raw", true)) {
-        return 1;
-    }
+    // if (!image2D.loadFromFile(path + "picture_2d.raw", true)) {
+    //     return 1;
+    // }
 
 
     //std::cout << "\n--- Original 3D Image Info ---" << std::endl;
@@ -39,6 +42,31 @@ int main() {
     //    x_slice.PrintPicture();
     //    x_slice.saveToFile(path + "x_slice_30.raw");
     //}
+
+
+    //проверка библиотеки стандартных изображений 
+    string path = "../images/";
+    Picture testImage;
+    std::cout << "--- START TEST: Standard Images ---" << std::endl;
+    testImage.createCylinder(200, 200, 50.0);
+    testImage.addWalls();
+    std::string cylinderPath = path + "gen_cylinder.raw";
+    if (testImage.saveToFile(cylinderPath)) {
+        std::cout << "Cylinder saved to: " << cylinderPath << std::endl;
+    }
+    testImage.createTortuousChannel(400, 100, 30.0, 20.0, 0.05);
+    testImage.addWalls();
+    std::string channelPath = path + "gen_channel.raw";
+    if (testImage.saveToFile(channelPath)) {
+        std::cout << "Channel saved to: " << channelPath << std::endl;
+    }
+    testImage.createCylinderWithPore(200, 200, 60.0, 20.0);
+    testImage.addWalls();
+    std::string porePath = path + "gen_cylinder_with_pore.raw";
+    if (testImage.saveToFile(porePath)) {
+        std::cout << "Cylinder with pore saved to: " << porePath << std::endl;
+    }
+    std::cout << "--- END TEST ---" << std::endl;
 
     return 0;
 }

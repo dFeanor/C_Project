@@ -2,24 +2,24 @@
 #include <fstream>
 #include <iostream>
 
-// Реализация конструктора
+// Р РµР°Р»РёР·Р°С†РёСЏ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР°
 Picture::Picture() : N1(0), N2(0), N3(0), resolution(0.0), pixels(nullptr) {}
 
-// Реализация деструктора
+// Р РµР°Р»РёР·Р°С†РёСЏ РґРµСЃС‚СЂСѓРєС‚РѕСЂР°
 Picture::~Picture() {
-    delete[] pixels; // Освобождаем память, если она была выделена
+    delete[] pixels; // РћСЃРІРѕР±РѕР¶РґР°РµРј РїР°РјСЏС‚СЊ, РµСЃР»Рё РѕРЅР° Р±С‹Р»Р° РІС‹РґРµР»РµРЅР°
 }
 
-// Реализация метода загрузки из файла
+// Р РµР°Р»РёР·Р°С†РёСЏ РјРµС‚РѕРґР° Р·Р°РіСЂСѓР·РєРё РёР· С„Р°Р№Р»Р°
 bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
-    // Открываем файл в бинарном режиме для чтения
+    // РћС‚РєСЂС‹РІР°РµРј С„Р°Р№Р» РІ Р±РёРЅР°СЂРЅРѕРј СЂРµР¶РёРјРµ РґР»СЏ С‡С‚РµРЅРёСЏ
     std::ifstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file " << filePath << std::endl;
         return false;
     }
 
-    // Читаем размеры
+    // Р§РёС‚Р°РµРј СЂР°Р·РјРµСЂС‹
     file.read(reinterpret_cast<char*>(&N1), sizeof(N1));
     file.read(reinterpret_cast<char*>(&N2), sizeof(N2));
 
@@ -27,40 +27,40 @@ bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
         file.read(reinterpret_cast<char*>(&N3), sizeof(N3));
     }
     else {
-        N3 = 0; // Для 2D случая третий размер равен 0
+        N3 = 0; // Р”Р»СЏ 2D СЃР»СѓС‡Р°СЏ С‚СЂРµС‚РёР№ СЂР°Р·РјРµСЂ СЂР°РІРµРЅ 0
     }
 
-    // Читаем разрешение
+    // Р§РёС‚Р°РµРј СЂР°Р·СЂРµС€РµРЅРёРµ
     file.read(reinterpret_cast<char*>(&resolution), sizeof(resolution));
 
-    // Проверяем, удалось ли чтение заголовка
+    // РџСЂРѕРІРµСЂСЏРµРј, СѓРґР°Р»РѕСЃСЊ Р»Рё С‡С‚РµРЅРёРµ Р·Р°РіРѕР»РѕРІРєР°
     if (!file) {
         std::cerr << "Error: Failed to read header from file " << filePath << std::endl;
         return false;
     }
 
-    // Сбрасываем флаг при новой загрузке
+    // РЎР±СЂР°СЃС‹РІР°РµРј С„Р»Р°Рі РїСЂРё РЅРѕРІРѕР№ Р·Р°РіСЂСѓР·РєРµ
     wallsAdded = false;
 
-    // Вычисляем общее количество пикселей
+    // Р’С‹С‡РёСЃР»СЏРµРј РѕР±С‰РµРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РїРёРєСЃРµР»РµР№
     size_t totalPixels = is3D ? (N1 * N2 * N3) : (N1 * N2);
     if (totalPixels == 0) {
         std::cerr << "Error: Image dimensions are zero." << std::endl;
         return false;
     }
 
-    // Освобождаем старую память, если она была выделена
+    // РћСЃРІРѕР±РѕР¶РґР°РµРј СЃС‚Р°СЂСѓСЋ РїР°РјСЏС‚СЊ, РµСЃР»Рё РѕРЅР° Р±С‹Р»Р° РІС‹РґРµР»РµРЅР°
     delete[] pixels;
 
-    // Выделяем новую память под пиксели
+    // Р’С‹РґРµР»СЏРµРј РЅРѕРІСѓСЋ РїР°РјСЏС‚СЊ РїРѕРґ РїРёРєСЃРµР»Рё
     pixels = new unsigned char[totalPixels];
 
-    // Читаем данные пикселей в выделенную память
+    // Р§РёС‚Р°РµРј РґР°РЅРЅС‹Рµ РїРёРєСЃРµР»РµР№ РІ РІС‹РґРµР»РµРЅРЅСѓСЋ РїР°РјСЏС‚СЊ
     file.read(reinterpret_cast<char*>(pixels), totalPixels);
 
     if (!file) {
         std::cerr << "Error: Failed to read pixel data from file " << filePath << std::endl;
-        delete[] pixels; // Очищаем память в случае ошибки
+        delete[] pixels; // РћС‡РёС‰Р°РµРј РїР°РјСЏС‚СЊ РІ СЃР»СѓС‡Р°Рµ РѕС€РёР±РєРё
         pixels = nullptr;
         return false;
     }
@@ -69,54 +69,54 @@ bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
     return true;
 }
 
-// Реализация метода для сохранения 2D изображения в файл
+// Р РµР°Р»РёР·Р°С†РёСЏ РјРµС‚РѕРґР° РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ 2D РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ С„Р°Р№Р»
 bool Picture::saveToFile(const std::string& filePath) const {
-    // --- Шаг 1: Проверки ---
+    // --- РЁР°Рі 1: РџСЂРѕРІРµСЂРєРё ---
     if (pixels == nullptr) {
         std::cerr << "Error: Cannot save an empty picture." << std::endl;
         return false;
     }
-    // Этот метод предназначен для 2D-формата, который вы описали
+    // Р­С‚РѕС‚ РјРµС‚РѕРґ РїСЂРµРґРЅР°Р·РЅР°С‡РµРЅ РґР»СЏ 2D-С„РѕСЂРјР°С‚Р°, РєРѕС‚РѕСЂС‹Р№ РІС‹ РѕРїРёСЃР°Р»Рё
     if (N3 > 0) {
         std::cerr << "Error: saveToFile is implemented for 2D images only." << std::endl;
         return false;
     }
 
-    // --- Шаг 2: Открытие файла для записи ---
+    // --- РЁР°Рі 2: РћС‚РєСЂС‹С‚РёРµ С„Р°Р№Р»Р° РґР»СЏ Р·Р°РїРёСЃРё ---
     // std::ofstream - output file stream
-    // std::ios::binary - обязательный флаг для бинарной записи
+    // std::ios::binary - РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Р№ С„Р»Р°Рі РґР»СЏ Р±РёРЅР°СЂРЅРѕР№ Р·Р°РїРёСЃРё
     std::ofstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file for writing: " << filePath << std::endl;
         return false;
     }
 
-    // --- Шаг 3: Запись заголовка ---
-    // Метод write принимает указатель на char, поэтому используем reinterpret_cast
+    // --- РЁР°Рі 3: Р—Р°РїРёСЃСЊ Р·Р°РіРѕР»РѕРІРєР° ---
+    // РњРµС‚РѕРґ write РїСЂРёРЅРёРјР°РµС‚ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° char, РїРѕСЌС‚РѕРјСѓ РёСЃРїРѕР»СЊР·СѓРµРј reinterpret_cast
     file.write(reinterpret_cast<const char*>(&N1), sizeof(N1));
     file.write(reinterpret_cast<const char*>(&N2), sizeof(N2));
     file.write(reinterpret_cast<const char*>(&resolution), sizeof(resolution));
 
-    // --- Шаг 4: Запись пикселей ---
+    // --- РЁР°Рі 4: Р—Р°РїРёСЃСЊ РїРёРєСЃРµР»РµР№ ---
     uint64_t totalPixels = N1 * N2;
     file.write(reinterpret_cast<const char*>(pixels), totalPixels);
 
-    // Проверяем, не возникло ли ошибок во время записи
+    // РџСЂРѕРІРµСЂСЏРµРј, РЅРµ РІРѕР·РЅРёРєР»Рѕ Р»Рё РѕС€РёР±РѕРє РІРѕ РІСЂРµРјСЏ Р·Р°РїРёСЃРё
     if (!file) {
         std::cerr << "Error: An error occurred while writing to file: " << filePath << std::endl;
         return false;
     }
 
-    // Файл закроется автоматически, когда объект 'file' выйдет из области видимости
+    // Р¤Р°Р№Р» Р·Р°РєСЂРѕРµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё, РєРѕРіРґР° РѕР±СЉРµРєС‚ 'file' РІС‹Р№РґРµС‚ РёР· РѕР±Р»Р°СЃС‚Рё РІРёРґРёРјРѕСЃС‚Рё
 
     std::cout << "Successfully saved image to " << filePath << std::endl;
     return true;
 }
 
 
-// Реализация метода для вырезания квадратной подобласти
+// Р РµР°Р»РёР·Р°С†РёСЏ РјРµС‚РѕРґР° РґР»СЏ РІС‹СЂРµР·Р°РЅРёСЏ РєРІР°РґСЂР°С‚РЅРѕР№ РїРѕРґРѕР±Р»Р°СЃС‚Рё
 bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t startY, uint64_t size) const {
-    // --- Шаг 1: Проверки исходного изображения ---
+    // --- РЁР°Рі 1: РџСЂРѕРІРµСЂРєРё РёСЃС…РѕРґРЅРѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ ---
     if (pixels == nullptr) {
         std::cerr << "Error: Cannot extract subregion from an empty picture. Load a file first." << std::endl;
         return false;
@@ -126,7 +126,7 @@ bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t
         return false;
     }
 
-    // --- Шаг 2: Проверки входных параметров ---
+    // --- РЁР°Рі 2: РџСЂРѕРІРµСЂРєРё РІС…РѕРґРЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ ---
     if (size == 0) {
         std::cerr << "Error: Subregion size cannot be zero." << std::endl;
         return false;
@@ -141,61 +141,61 @@ bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t
         return false;
     }
 
-    // --- Шаг 3: Проверка объекта outputPicture ---
-    // Убедимся, что outputPicture пуст, чтобы избежать утечек памяти или перезаписи
+    // --- РЁР°Рі 3: РџСЂРѕРІРµСЂРєР° РѕР±СЉРµРєС‚Р° outputPicture ---
+    // РЈР±РµРґРёРјСЃСЏ, С‡С‚Рѕ outputPicture РїСѓСЃС‚, С‡С‚РѕР±С‹ РёР·Р±РµР¶Р°С‚СЊ СѓС‚РµС‡РµРє РїР°РјСЏС‚Рё РёР»Рё РїРµСЂРµР·Р°РїРёСЃРё
     if (outputPicture.pixels != nullptr) {
         std::cerr << "Error: Output picture is not empty. Please provide an empty Picture object." << std::endl;
         return false;
     }
 
-    // --- Шаг 4: Вычисление размеров новой подобласти ---
-    uint64_t new_N1 = size; // Новые строки = размер квадрата
-    uint64_t new_N2 = size; // Новые столбцы = размер квадрата
+    // --- РЁР°Рі 4: Р’С‹С‡РёСЃР»РµРЅРёРµ СЂР°Р·РјРµСЂРѕРІ РЅРѕРІРѕР№ РїРѕРґРѕР±Р»Р°СЃС‚Рё ---
+    uint64_t new_N1 = size; // РќРѕРІС‹Рµ СЃС‚СЂРѕРєРё = СЂР°Р·РјРµСЂ РєРІР°РґСЂР°С‚Р°
+    uint64_t new_N2 = size; // РќРѕРІС‹Рµ СЃС‚РѕР»Р±С†С‹ = СЂР°Р·РјРµСЂ РєРІР°РґСЂР°С‚Р°
     uint64_t newTotalPixels = new_N1 * new_N2;
 
-    // --- Шаг 5: Выделение памяти для новой подобласти ---
+    // --- РЁР°Рі 5: Р’С‹РґРµР»РµРЅРёРµ РїР°РјСЏС‚Рё РґР»СЏ РЅРѕРІРѕР№ РїРѕРґРѕР±Р»Р°СЃС‚Рё ---
     unsigned char* newPixelsBuffer = new (std::nothrow) unsigned char[newTotalPixels];
     if (newPixelsBuffer == nullptr) {
         std::cerr << "Error: Failed to allocate memory for subregion pixels." << std::endl;
         return false;
     }
 
-    // --- Шаг 6: Копирование данных пикселей ---
-    // Итерируемся по каждой строке новой подобласти
+    // --- РЁР°Рі 6: РљРѕРїРёСЂРѕРІР°РЅРёРµ РґР°РЅРЅС‹С… РїРёРєСЃРµР»РµР№ ---
+    // РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РєР°Р¶РґРѕР№ СЃС‚СЂРѕРєРµ РЅРѕРІРѕР№ РїРѕРґРѕР±Р»Р°СЃС‚Рё
     for (uint64_t r = 0; r < new_N1; ++r) {
-        // Вычисляем индекс начального пикселя в текущей строке ИСХОДНОГО изображения
+        // Р’С‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ РЅР°С‡Р°Р»СЊРЅРѕРіРѕ РїРёРєСЃРµР»СЏ РІ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРµ РРЎРҐРћР”РќРћР“Рћ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
         uint64_t sourceRowStartIdx = (startY + r) * N2 + startX;
-        // Вычисляем индекс начального пикселя в текущей строке НОВОГО изображения
+        // Р’С‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ РЅР°С‡Р°Р»СЊРЅРѕРіРѕ РїРёРєСЃРµР»СЏ РІ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРµ РќРћР’РћР“Рћ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
         uint64_t destRowStartIdx = r * new_N2;
 
-        // Копируем всю строку пикселей.
-        // Количество байт для копирования равно new_N2 (размер строки в новой подобласти)
+        // РљРѕРїРёСЂСѓРµРј РІСЃСЋ СЃС‚СЂРѕРєСѓ РїРёРєСЃРµР»РµР№.
+        // РљРѕР»РёС‡РµСЃС‚РІРѕ Р±Р°Р№С‚ РґР»СЏ РєРѕРїРёСЂРѕРІР°РЅРёСЏ СЂР°РІРЅРѕ new_N2 (СЂР°Р·РјРµСЂ СЃС‚СЂРѕРєРё РІ РЅРѕРІРѕР№ РїРѕРґРѕР±Р»Р°СЃС‚Рё)
         std::memcpy(newPixelsBuffer + destRowStartIdx,
             pixels + sourceRowStartIdx,
             new_N2 * sizeof(unsigned char));
     }
 
-    // --- Шаг 7: Заполнение полей outputPicture ---
+    // --- РЁР°Рі 7: Р—Р°РїРѕР»РЅРµРЅРёРµ РїРѕР»РµР№ outputPicture ---
     outputPicture.N1 = new_N1;
     outputPicture.N2 = new_N2;
-    outputPicture.N3 = 0; // Всегда 0 для 2D
-    outputPicture.resolution = this->resolution; // Разрешение обычно наследуется
+    outputPicture.N3 = 0; // Р’СЃРµРіРґР° 0 РґР»СЏ 2D
+    outputPicture.resolution = this->resolution; // Р Р°Р·СЂРµС€РµРЅРёРµ РѕР±С‹С‡РЅРѕ РЅР°СЃР»РµРґСѓРµС‚СЃСЏ
     outputPicture.pixels = newPixelsBuffer;
-    outputPicture.wallsAdded = false; // Новое изображение, стенки еще не добавлялись
+    outputPicture.wallsAdded = false; // РќРѕРІРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ, СЃС‚РµРЅРєРё РµС‰Рµ РЅРµ РґРѕР±Р°РІР»СЏР»РёСЃСЊ
 
     std::cout << "Successfully extracted subregion (" << startX << ", " << startY << ") with size " << size
         << ". New dimensions: " << new_N1 << "x" << new_N2 << std::endl;
     return true;
 }
 
-// Реализация метода для извлечения 2D-слайса из 3D-изображения
+// Р РµР°Р»РёР·Р°С†РёСЏ РјРµС‚РѕРґР° РґР»СЏ РёР·РІР»РµС‡РµРЅРёСЏ 2D-СЃР»Р°Р№СЃР° РёР· 3D-РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceIndex) const {
-    // --- Шаг 1: Проверки ---
+    // --- РЁР°Рі 1: РџСЂРѕРІРµСЂРєРё ---
     if (pixels == nullptr) {
         std::cerr << "Error: Cannot extract a slice from an empty picture." << std::endl;
         return false;
     }
-    if (N3 == 0) { // Проверяем, что изображение трехмерное
+    if (N3 == 0) { // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РёР·РѕР±СЂР°Р¶РµРЅРёРµ С‚СЂРµС…РјРµСЂРЅРѕРµ
         std::cerr << "Error: Slices can only be extracted from 3D images." << std::endl;
         return false;
     }
@@ -206,35 +206,35 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
 
     uint64_t new_N1 = 0, new_N2 = 0;
 
-    // --- Шаг 2: Валидация индекса и определение размеров слайса ---
+    // --- РЁР°Рі 2: Р’Р°Р»РёРґР°С†РёСЏ РёРЅРґРµРєСЃР° Рё РѕРїСЂРµРґРµР»РµРЅРёРµ СЂР°Р·РјРµСЂРѕРІ СЃР»Р°Р№СЃР° ---
     switch (axis) {
     case SliceAxis::X:
         if (sliceIndex >= N2) {
             std::cerr << "Error: X-axis slice index " << sliceIndex << " is out of bounds [0, " << N2 - 1 << "]." << std::endl;
             return false;
         }
-        new_N1 = N1; // Высота
-        new_N2 = N3; // Ширина (будет из глубины)
+        new_N1 = N1; // Р’С‹СЃРѕС‚Р°
+        new_N2 = N3; // РЁРёСЂРёРЅР° (Р±СѓРґРµС‚ РёР· РіР»СѓР±РёРЅС‹)
         break;
     case SliceAxis::Y:
         if (sliceIndex >= N1) {
             std::cerr << "Error: Y-axis slice index " << sliceIndex << " is out of bounds [0, " << N1 - 1 << "]." << std::endl;
             return false;
         }
-        new_N1 = N2; // Высота (будет из ширины)
-        new_N2 = N3; // Ширина (будет из глубины)
+        new_N1 = N2; // Р’С‹СЃРѕС‚Р° (Р±СѓРґРµС‚ РёР· С€РёСЂРёРЅС‹)
+        new_N2 = N3; // РЁРёСЂРёРЅР° (Р±СѓРґРµС‚ РёР· РіР»СѓР±РёРЅС‹)
         break;
     case SliceAxis::Z:
         if (sliceIndex >= N3) {
             std::cerr << "Error: Z-axis slice index " << sliceIndex << " is out of bounds [0, " << N3 - 1 << "]." << std::endl;
             return false;
         }
-        new_N1 = N1; // Высота
-        new_N2 = N2; // Ширина
+        new_N1 = N1; // Р’С‹СЃРѕС‚Р°
+        new_N2 = N2; // РЁРёСЂРёРЅР°
         break;
     }
 
-    // --- Шаг 3: Выделение памяти ---
+    // --- РЁР°Рі 3: Р’С‹РґРµР»РµРЅРёРµ РїР°РјСЏС‚Рё ---
     uint64_t totalNewPixels = new_N1 * new_N2;
     unsigned char* newPixels = new (std::nothrow) unsigned char[totalNewPixels];
     if (newPixels == nullptr) {
@@ -242,30 +242,30 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
         return false;
     }
 
-    // --- Шаг 4: Копирование пикселей ---
-    // Данные в 3D хранятся так: [сначала все пиксели для z=0, потом для z=1, ...]
-    // Индекс пикселя (i, j, k) -> k*(N1*N2) + i*N2 + j
-    // где i - строка (Y), j - столбец (X), k - глубина (Z)
+    // --- РЁР°Рі 4: РљРѕРїРёСЂРѕРІР°РЅРёРµ РїРёРєСЃРµР»РµР№ ---
+    // Р”Р°РЅРЅС‹Рµ РІ 3D С…СЂР°РЅСЏС‚СЃСЏ С‚Р°Рє: [СЃРЅР°С‡Р°Р»Р° РІСЃРµ РїРёРєСЃРµР»Рё РґР»СЏ z=0, РїРѕС‚РѕРј РґР»СЏ z=1, ...]
+    // РРЅРґРµРєСЃ РїРёРєСЃРµР»СЏ (i, j, k) -> k*(N1*N2) + i*N2 + j
+    // РіРґРµ i - СЃС‚СЂРѕРєР° (Y), j - СЃС‚РѕР»Р±РµС† (X), k - РіР»СѓР±РёРЅР° (Z)
 
     uint64_t currentNewPixel = 0;
     switch (axis) {
-    case SliceAxis::Z: { // Самый простой случай: данные лежат подряд
+    case SliceAxis::Z: { // РЎР°РјС‹Р№ РїСЂРѕСЃС‚РѕР№ СЃР»СѓС‡Р°Р№: РґР°РЅРЅС‹Рµ Р»РµР¶Р°С‚ РїРѕРґСЂСЏРґ
         uint64_t offset = sliceIndex * (N1 * N2);
         std::memcpy(newPixels, pixels + offset, totalNewPixels);
         break;
     }
-    case SliceAxis::Y: { // Фиксируем строку 'i', итерируем по 'j' и 'k'
-        for (uint64_t k = 0; k < N3; ++k) { // Итерация по глубине
-            for (uint64_t j = 0; j < N2; ++j) { // Итерация по ширине
+    case SliceAxis::Y: { // Р¤РёРєСЃРёСЂСѓРµРј СЃС‚СЂРѕРєСѓ 'i', РёС‚РµСЂРёСЂСѓРµРј РїРѕ 'j' Рё 'k'
+        for (uint64_t k = 0; k < N3; ++k) { // РС‚РµСЂР°С†РёСЏ РїРѕ РіР»СѓР±РёРЅРµ
+            for (uint64_t j = 0; j < N2; ++j) { // РС‚РµСЂР°С†РёСЏ РїРѕ С€РёСЂРёРЅРµ
                 uint64_t sourceIndex = k * (N1 * N2) + sliceIndex * N2 + j;
                 newPixels[currentNewPixel++] = pixels[sourceIndex];
             }
         }
         break;
     }
-    case SliceAxis::X: { // Фиксируем столбец 'j', итерируем по 'i' и 'k'
-        for (uint64_t k = 0; k < N3; ++k) { // Итерация по глубине
-            for (uint64_t i = 0; i < N1; ++i) { // Итерация по высоте
+    case SliceAxis::X: { // Р¤РёРєСЃРёСЂСѓРµРј СЃС‚РѕР»Р±РµС† 'j', РёС‚РµСЂРёСЂСѓРµРј РїРѕ 'i' Рё 'k'
+        for (uint64_t k = 0; k < N3; ++k) { // РС‚РµСЂР°С†РёСЏ РїРѕ РіР»СѓР±РёРЅРµ
+            for (uint64_t i = 0; i < N1; ++i) { // РС‚РµСЂР°С†РёСЏ РїРѕ РІС‹СЃРѕС‚Рµ
                 uint64_t sourceIndex = k * (N1 * N2) + i * N2 + sliceIndex;
                 newPixels[currentNewPixel++] = pixels[sourceIndex];
             }
@@ -274,10 +274,10 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
     }
     }
 
-    // --- Шаг 5: Заполнение полей выходного объекта ---
+    // --- РЁР°Рі 5: Р—Р°РїРѕР»РЅРµРЅРёРµ РїРѕР»РµР№ РІС‹С…РѕРґРЅРѕРіРѕ РѕР±СЉРµРєС‚Р° ---
     outputSlice.N1 = new_N1;
     outputSlice.N2 = new_N2;
-    outputSlice.N3 = 0; // Слайс - это 2D изображение
+    outputSlice.N3 = 0; // РЎР»Р°Р№СЃ - СЌС‚Рѕ 2D РёР·РѕР±СЂР°Р¶РµРЅРёРµ
     outputSlice.resolution = this->resolution;
     outputSlice.pixels = newPixels;
     outputSlice.wallsAdded = false;
@@ -287,7 +287,7 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
 }
 
 void Picture::addWalls() {
-    // --- Шаг 1: Проверки ---
+    // --- РЁР°Рі 1: РџСЂРѕРІРµСЂРєРё ---
     if (pixels == nullptr) {
         std::cerr << "Warning: Cannot add walls to an empty picture. Load a file first." << std::endl;
         return;
@@ -296,7 +296,7 @@ void Picture::addWalls() {
         std::cout << "Info: Walls have already been added to this picture." << std::endl;
         return;
     }
-    // Проверяем, что работаем с 2D изображением
+    // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ СЂР°Р±РѕС‚Р°РµРј СЃ 2D РёР·РѕР±СЂР°Р¶РµРЅРёРµРј
     if (N3 > 0) {
         std::cerr << "Warning: The 'addTopBottomWalls' method is implemented for 2D images only." << std::endl;
         return;
@@ -304,46 +304,46 @@ void Picture::addWalls() {
 
     std::cout << "Adding top and bottom walls..." << std::endl;
 
-    // Определим значение пикселя для стенки (255 - порода)
+    // РћРїСЂРµРґРµР»РёРј Р·РЅР°С‡РµРЅРёРµ РїРёРєСЃРµР»СЏ РґР»СЏ СЃС‚РµРЅРєРё (255 - РїРѕСЂРѕРґР°)
     const unsigned char WALL_PIXEL_VALUE = 255;
 
-    // --- Шаг 2: Вычисление новых размеров ---
-    uint64_t old_N1 = N1;       // Старое количество строк
-    uint64_t new_N1 = N1 + 2;   // Новое количество строк (старое + 2 стенки)
+    // --- РЁР°Рі 2: Р’С‹С‡РёСЃР»РµРЅРёРµ РЅРѕРІС‹С… СЂР°Р·РјРµСЂРѕРІ ---
+    uint64_t old_N1 = N1;       // РЎС‚Р°СЂРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
+    uint64_t new_N1 = N1 + 2;   // РќРѕРІРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє (СЃС‚Р°СЂРѕРµ + 2 СЃС‚РµРЅРєРё)
 
-    // N2 (количество столбцов) не меняется
-    uint64_t rowSizeBytes = N2; // Размер одной строки в байтах
+    // N2 (РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ) РЅРµ РјРµРЅСЏРµС‚СЃСЏ
+    uint64_t rowSizeBytes = N2; // Р Р°Р·РјРµСЂ РѕРґРЅРѕР№ СЃС‚СЂРѕРєРё РІ Р±Р°Р№С‚Р°С…
     uint64_t oldTotalPixels = old_N1 * N2;
     uint64_t newTotalPixels = new_N1 * N2;
 
-    // --- Шаг 3: Выделение новой памяти ---
+    // --- РЁР°Рі 3: Р’С‹РґРµР»РµРЅРёРµ РЅРѕРІРѕР№ РїР°РјСЏС‚Рё ---
     unsigned char* newPixels = new unsigned char[newTotalPixels];
 
-    // --- Шаг 4: Заполнение нового массива ---
+    // --- РЁР°Рі 4: Р—Р°РїРѕР»РЅРµРЅРёРµ РЅРѕРІРѕРіРѕ РјР°СЃСЃРёРІР° ---
 
-    // 4.1. Добавляем ВЕРХНЮЮ стенку (заполняем первую строку значением WALL_PIXEL_VALUE)
+    // 4.1. Р”РѕР±Р°РІР»СЏРµРј Р’Р•Р РҐРќР®Р® СЃС‚РµРЅРєСѓ (Р·Р°РїРѕР»РЅСЏРµРј РїРµСЂРІСѓСЋ СЃС‚СЂРѕРєСѓ Р·РЅР°С‡РµРЅРёРµРј WALL_PIXEL_VALUE)
     std::memset(newPixels, WALL_PIXEL_VALUE, rowSizeBytes);
 
-    // 4.2. Копируем старые данные изображения сразу после верхней стенки
-    // Адрес назначения: начало нового массива + смещение на одну строку
+    // 4.2. РљРѕРїРёСЂСѓРµРј СЃС‚Р°СЂС‹Рµ РґР°РЅРЅС‹Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ РІРµСЂС…РЅРµР№ СЃС‚РµРЅРєРё
+    // РђРґСЂРµСЃ РЅР°Р·РЅР°С‡РµРЅРёСЏ: РЅР°С‡Р°Р»Рѕ РЅРѕРІРѕРіРѕ РјР°СЃСЃРёРІР° + СЃРјРµС‰РµРЅРёРµ РЅР° РѕРґРЅСѓ СЃС‚СЂРѕРєСѓ
     std::memcpy(newPixels + rowSizeBytes, pixels, oldTotalPixels);
 
-    // 4.3. Добавляем НИЖНЮЮ стенку
-    // Адрес назначения: начало нового массива + смещение на (1 + old_N1) строк
+    // 4.3. Р”РѕР±Р°РІР»СЏРµРј РќРР–РќР®Р® СЃС‚РµРЅРєСѓ
+    // РђРґСЂРµСЃ РЅР°Р·РЅР°С‡РµРЅРёСЏ: РЅР°С‡Р°Р»Рѕ РЅРѕРІРѕРіРѕ РјР°СЃСЃРёРІР° + СЃРјРµС‰РµРЅРёРµ РЅР° (1 + old_N1) СЃС‚СЂРѕРє
     std::memset(newPixels + rowSizeBytes + oldTotalPixels, WALL_PIXEL_VALUE, rowSizeBytes);
 
-    // --- Шаг 5: Освобождение старой памяти ---
+    // --- РЁР°Рі 5: РћСЃРІРѕР±РѕР¶РґРµРЅРёРµ СЃС‚Р°СЂРѕР№ РїР°РјСЏС‚Рё ---
     delete[] pixels;
 
-    // --- Шаг 6: Обновление состояния объекта ---
-    pixels = newPixels; // Теперь указатель хранит адрес нового, большого массива
-    N1 = new_N1;        // Обновляем количество строк
-    wallsAdded = true;  // Устанавливаем флаг
+    // --- РЁР°Рі 6: РћР±РЅРѕРІР»РµРЅРёРµ СЃРѕСЃС‚РѕСЏРЅРёСЏ РѕР±СЉРµРєС‚Р° ---
+    pixels = newPixels; // РўРµРїРµСЂСЊ СѓРєР°Р·Р°С‚РµР»СЊ С…СЂР°РЅРёС‚ Р°РґСЂРµСЃ РЅРѕРІРѕРіРѕ, Р±РѕР»СЊС€РѕРіРѕ РјР°СЃСЃРёРІР°
+    N1 = new_N1;        // РћР±РЅРѕРІР»СЏРµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
+    wallsAdded = true;  // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С„Р»Р°Рі
 
     std::cout << "Successfully added walls. New dimensions (N1 x N2): " << N1 << " x " << N2 << std::endl;
 }
 
-// Реализация геттеров
+// Р РµР°Р»РёР·Р°С†РёСЏ РіРµС‚С‚РµСЂРѕРІ
 size_t Picture::getDim1() const {
     return N1;
 }
@@ -371,14 +371,14 @@ const unsigned char* Picture::getPixelData() const {
 void Picture::PrintPicture() {
     std::cout << "--- Picture Info ---" << std::endl;
 
-    // Проверяем, было ли изображение загружено (выделена ли память под пиксели)
+    // РџСЂРѕРІРµСЂСЏРµРј, Р±С‹Р»Рѕ Р»Рё РёР·РѕР±СЂР°Р¶РµРЅРёРµ Р·Р°РіСЂСѓР¶РµРЅРѕ (РІС‹РґРµР»РµРЅР° Р»Рё РїР°РјСЏС‚СЊ РїРѕРґ РїРёРєСЃРµР»Рё)
     if (pixels == nullptr) {
         std::cout << "Picture is empty or not loaded." << std::endl;
         std::cout << "--------------------" << std::endl;
-        return; // Выходим из метода, так как выводить нечего
+        return; // Р’С‹С…РѕРґРёРј РёР· РјРµС‚РѕРґР°, С‚Р°Рє РєР°Рє РІС‹РІРѕРґРёС‚СЊ РЅРµС‡РµРіРѕ
     }
 
-    // Определяем, является ли изображение 2D или 3D
+    // РћРїСЂРµРґРµР»СЏРµРј, СЏРІР»СЏРµС‚СЃСЏ Р»Рё РёР·РѕР±СЂР°Р¶РµРЅРёРµ 2D РёР»Рё 3D
     bool is3D = (N3 > 0);
 
     if (is3D) {
@@ -395,14 +395,14 @@ void Picture::PrintPicture() {
     uint64_t totalPixels = getTotalPixels();
     std::cout << "Total Pixels: " << totalPixels << std::endl;
 
-    // Выведем несколько первых пикселей для примера, чтобы не загромождать консоль
-    // Например, выведем не более 16 первых пикселей
+    // Р’С‹РІРµРґРµРј РЅРµСЃРєРѕР»СЊРєРѕ РїРµСЂРІС‹С… РїРёРєСЃРµР»РµР№ РґР»СЏ РїСЂРёРјРµСЂР°, С‡С‚РѕР±С‹ РЅРµ Р·Р°РіСЂРѕРјРѕР¶РґР°С‚СЊ РєРѕРЅСЃРѕР»СЊ
+    // РќР°РїСЂРёРјРµСЂ, РІС‹РІРµРґРµРј РЅРµ Р±РѕР»РµРµ 16 РїРµСЂРІС‹С… РїРёРєСЃРµР»РµР№
     std::cout << "Sample of first pixels: ";
     if (totalPixels > 0) {
-        // Определяем, сколько пикселей показать, чтобы не выйти за пределы массива
+        // РћРїСЂРµРґРµР»СЏРµРј, СЃРєРѕР»СЊРєРѕ РїРёРєСЃРµР»РµР№ РїРѕРєР°Р·Р°С‚СЊ, С‡С‚РѕР±С‹ РЅРµ РІС‹Р№С‚Рё Р·Р° РїСЂРµРґРµР»С‹ РјР°СЃСЃРёРІР°
         uint64_t pixelsToShow = std::min(totalPixels, static_cast<uint64_t>(16));
         for (uint64_t i = 0; i < pixelsToShow; ++i) {
-            // Кастуем к int, чтобы cout вывел число, а не символ ASCII
+            // РљР°СЃС‚СѓРµРј Рє int, С‡С‚РѕР±С‹ cout РІС‹РІРµР» С‡РёСЃР»Рѕ, Р° РЅРµ СЃРёРјРІРѕР» ASCII
             std::cout << static_cast<int>(pixels[i]) << " ";
         }
     }
@@ -412,4 +412,91 @@ void Picture::PrintPicture() {
 
     std::cout << std::endl;
     std::cout << "--------------------" << std::endl;
+}
+
+
+//РјРµС‚РѕРґ РіРµРЅРµСЂР°С†РёРё С†РёР»РёРЅРґСЂР° 
+void Picture::createCylinder(size_t width, size_t height, double radius) {
+    delete[] pixels;
+    N1 = height; 
+    N2 = width;
+    N3 = 0;
+    resolution = 1.0; 
+    wallsAdded = false;
+    pixels = new unsigned char[N1 * N2];
+
+    double centerX = N2 / 2.0;
+    double centerY = N1 / 2.0;
+    double radiusSq = radius * radius;
+
+    for (size_t i = 0; i < N1; ++i) {      
+        for (size_t j = 0; j < N2; ++j) {
+            double distSq = std::pow(j - centerX, 2) + std::pow(i - centerY, 2);
+            size_t index = i * N2 + j;
+            if (distSq <= radiusSq) {
+                pixels[index] = 255;
+            } else {
+                pixels[index] = 0;
+            }
+        }
+    }
+    std::cout << "Generated Cylinder: " << width << "x" << height << ", R=" << radius << std::endl;
+}
+
+// 3. Р“РµРЅРµСЂР°С†РёСЏ С†РёР»РёРЅРґСЂР° СЃ Р·Р°РјРєРЅСѓС‚РѕР№ РїРѕСЂРѕР№ (Р‘СѓР±Р»РёРє)
+void Picture::createCylinderWithPore(size_t width, size_t height, double radiusOuter, double radiusInner) {
+    delete[] pixels;
+    N1 = height;
+    N2 = width;
+    N3 = 0;
+    resolution = 1.0;
+    wallsAdded = false;
+    pixels = new unsigned char[N1 * N2];
+    double centerX = N2 / 2.0;
+    double centerY = N1 / 2.0;
+    double rOutSq = radiusOuter * radiusOuter;
+    double rInSq = radiusInner * radiusInner;
+
+    for (size_t i = 0; i < N1; ++i) {      
+        for (size_t j = 0; j < N2; ++j) {  
+            
+            double distSq = std::pow(j - centerX, 2) + std::pow(i - centerY, 2);
+            size_t index = i * N2 + j;
+            if (distSq <= rInSq) {
+                pixels[index] = 0; 
+            }
+            else if (distSq <= rOutSq) {
+                pixels[index] = 255; 
+            } 
+            else {pixels[index] = 0;   
+            }
+        }
+    }
+    std::cout << "Generated Cylinder with Pore: R_out=" << radiusOuter << ", R_in=" << radiusInner << std::endl;
+}
+
+
+void Picture::createTortuousChannel(size_t width, size_t height, double channelWidth, double amplitude, double frequency) {
+    delete[] pixels;
+
+    N1 = height;
+    N2 = width;
+    N3 = 0;
+    resolution = 1.0;
+    wallsAdded = false;
+
+    pixels = new unsigned char[N1 * N2];
+    double centerLineY = N1 / 2.0; 
+    for (size_t j = 0; j < N2; ++j) {
+        double shift = amplitude * sin(frequency * j);
+        double currentCenterY = centerLineY + shift;
+        for (size_t i = 0; i < N1; ++i) {
+            size_t index = i * N2 + j;if (abs(i - currentCenterY) <= (channelWidth / 2.0)) {
+                pixels[index] = 0;
+            } else {
+                pixels[index] = 255; 
+            }
+        }
+    }
+    std::cout << "Generated Sinusoidal Channel." << std::endl;
 }
