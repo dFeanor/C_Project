@@ -1,9 +1,9 @@
 #include "SLAY.h"
-#include <stdexcept> // Для выбрасывания исключений std::invalid_argument и std::logic_error
+#include <stdexcept> // Р”Р»СЏ РІС‹Р±СЂР°СЃС‹РІР°РЅРёСЏ РёСЃРєР»СЋС‡РµРЅРёР№ std::invalid_argument Рё std::logic_error
 
 namespace Matrixes {
 	Matrix SLAYSolver::solve_cholesky(const Matrix& A, const Matrix& b) {
-		// --- Шаг 0: Проверка корректности входных данных ---
+		// --- РЁР°Рі 0: РџСЂРѕРІРµСЂРєР° РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚Рё РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С… ---
 		int n = A.get_row_num();
 		if (n != A.get_col_num()) {
 			throw std::invalid_argument("Matrix A must be square for Cholesky decomposition.");
@@ -12,7 +12,7 @@ namespace Matrixes {
 			throw std::invalid_argument("Dimension mismatch between matrix A and vector b.");
 		}
 
-		//// Проверка на симметричность
+		//// РџСЂРѕРІРµСЂРєР° РЅР° СЃРёРјРјРµС‚СЂРёС‡РЅРѕСЃС‚СЊ
 		//const double EPS = 1e-12;
 		//for (int i = 0; i < n; ++i) {
 		//	for (int j = i + 1; j < n; ++j) {
@@ -22,11 +22,11 @@ namespace Matrixes {
 		//	}
 		//}
 
-		// --- Шаг 1: Разложение Холецкого (A = L * L^T) ---
-		// Реализация псевдокода с картинки. L - это C в псевдокоде.
+		// --- РЁР°Рі 1: Р Р°Р·Р»РѕР¶РµРЅРёРµ РҐРѕР»РµС†РєРѕРіРѕ (A = L * L^T) ---
+		// Р РµР°Р»РёР·Р°С†РёСЏ РїСЃРµРІРґРѕРєРѕРґР° СЃ РєР°СЂС‚РёРЅРєРё. L - СЌС‚Рѕ C РІ РїСЃРµРІРґРѕРєРѕРґРµ.
 		Matrix L(n, n, 0.0);
 		for (int j = 0; j < n; ++j) {
-			// Вычисление диагонального элемента L[j, j]
+			// Р’С‹С‡РёСЃР»РµРЅРёРµ РґРёР°РіРѕРЅР°Р»СЊРЅРѕРіРѕ СЌР»РµРјРµРЅС‚Р° L[j, j]
 			double sum_diag = 0.0;
 			for (int k = 0; k < j; ++k) {
 				sum_diag += L[{j, k}] * L[{j, k}]; // c_jk^2
@@ -38,7 +38,7 @@ namespace Matrixes {
 			}
 			L[{j, j}] = sqrt(value_under_sqrt);
 
-			// Вычисление поддиагональных элементов в столбце j
+			// Р’С‹С‡РёСЃР»РµРЅРёРµ РїРѕРґРґРёР°РіРѕРЅР°Р»СЊРЅС‹С… СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚РѕР»Р±С†Рµ j
 			for (int i = j + 1; i < n; ++i) {
 				double sum_sub_diag = 0.0;
 				for (int k = 0; k < j; ++k) {
@@ -48,7 +48,7 @@ namespace Matrixes {
 			}
 		}
 
-		// --- Шаг 2: Прямая подстановка (решение Ly = b) ---
+		// --- РЁР°Рі 2: РџСЂСЏРјР°СЏ РїРѕРґСЃС‚Р°РЅРѕРІРєР° (СЂРµС€РµРЅРёРµ Ly = b) ---
 		Matrix y(n, 1);
 		for (int i = 0; i < n; ++i) {
 			double sum = 0.0;
@@ -58,12 +58,12 @@ namespace Matrixes {
 			y[{i, 0}] = (b[{i, 0}] - sum) / L[{i, i}];
 		}
 
-		// --- Шаг 3: Обратная подстановка (решение L^T * x = y) ---
+		// --- РЁР°Рі 3: РћР±СЂР°С‚РЅР°СЏ РїРѕРґСЃС‚Р°РЅРѕРІРєР° (СЂРµС€РµРЅРёРµ L^T * x = y) ---
 		Matrix x(n, 1);
 		for (int i = n - 1; i >= 0; --i) {
 			double sum = 0.0;
 			for (int j = i + 1; j < n; ++j) {
-				sum += L[{j, i}] * x[{j, 0}]; // Используем L[j, i], так как матрица L^T
+				sum += L[{j, i}] * x[{j, 0}]; // РСЃРїРѕР»СЊР·СѓРµРј L[j, i], С‚Р°Рє РєР°Рє РјР°С‚СЂРёС†Р° L^T
 			}
 			x[{i, 0}] = (y[{i, 0}] - sum) / L[{i, i}];
 		}

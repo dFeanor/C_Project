@@ -13,10 +13,10 @@ namespace Matrixes {
 		vector<int> columns;
 		vector<int> rowIndex;
 	public:
-		int M; // число строк
-		int N; //число столбцов
-		int L; //число ненулевых элементов
-		//Пусть i - номер колонки, j - номер строки
+		int M; // С‡РёСЃР»Рѕ СЃС‚СЂРѕРє
+		int N; //С‡РёСЃР»Рѕ СЃС‚РѕР»Р±С†РѕРІ
+		int L; //С‡РёСЃР»Рѕ РЅРµРЅСѓР»РµРІС‹С… СЌР»РµРјРµРЅС‚РѕРІ
+		//РџСѓСЃС‚СЊ i - РЅРѕРјРµСЂ РєРѕР»РѕРЅРєРё, j - РЅРѕРјРµСЂ СЃС‚СЂРѕРєРё
 		void setElement(int i, int j, double element);
 		double getElement(int i, int j);
 		CSR3 Submatrix(int from_i, int to_i, int from_j, int to_j);
@@ -27,7 +27,7 @@ namespace Matrixes {
 		static CSR3 Read(string filename);
 		void Write(string filename);
 
-		//Перегружаем операторы
+		//РџРµСЂРµРіСЂСѓР¶Р°РµРј РѕРїРµСЂР°С‚РѕСЂС‹
 		friend CSR3 operator+(const CSR3& A, const CSR3& B);
 		CSR3 operator*(double scalar) const;
 		CSR3 operator-(CSR3& B) const;
