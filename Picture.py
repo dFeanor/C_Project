@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # Например: "C:/Users/User/Documents/image.bin" или просто "image.bin" #
     # если файл лежит рядом со скриптом.                               #
 
-    FILE_TO_VISUALIZE_IN_PYCHARM = "D:\VS_Projects\Magister_projects\C_Project\images2\picture_2d.raw"  # <-- ИЗМЕНИТЕ ЭТУ СТРОКУ
+    FILE_TO_VISUALIZE_IN_PYCHARM = "./images/gen_cylinder_with_pore.raw" 
 
     # ================================================================= #
 

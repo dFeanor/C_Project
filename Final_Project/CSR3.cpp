@@ -10,7 +10,7 @@ using namespace std;
 
 namespace Matrixes {
 
-	//Доступ на запись и считывание НЕНУЛЕВОГО ЭЛЕМЕНТА
+	//Р”РѕСЃС‚СѓРї РЅР° Р·Р°РїРёСЃСЊ Рё СЃС‡РёС‚С‹РІР°РЅРёРµ РќР•РќРЈР›Р•Р’РћР“Рћ Р­Р›Р•РњР•РќРўРђ
 	void CSR3::setElement(int i, int j, double element) {
 		int low = rowIndex[j];
 		int up = rowIndex[j + 1];
@@ -38,11 +38,11 @@ namespace Matrixes {
 			}
 		}
 	}
-	//Извлечение подматрицы
+	//РР·РІР»РµС‡РµРЅРёРµ РїРѕРґРјР°С‚СЂРёС†С‹
 	CSR3 CSR3::Submatrix(int from_i, int to_i, int from_j, int to_j) {
 		CSR3 sub;
-		sub.M = to_j - from_j;  // строки в подматрице
-		sub.N = to_i - from_i;  // столбцы в подматрице
+		sub.M = to_j - from_j;  // СЃС‚СЂРѕРєРё РІ РїРѕРґРјР°С‚СЂРёС†Рµ
+		sub.N = to_i - from_i;  // СЃС‚РѕР»Р±С†С‹ РІ РїРѕРґРјР°С‚СЂРёС†Рµ
 		sub.rowIndex.resize(sub.M + 1);
 
 		int count = 0;
@@ -52,12 +52,12 @@ namespace Matrixes {
 			int low = rowIndex[j];
 			int up = rowIndex[j + 1];
 
-			// Ищем ненулевые элементы в текущей строке j в диапазоне столбцов [from_i, to_i)
+			// РС‰РµРј РЅРµРЅСѓР»РµРІС‹Рµ СЌР»РµРјРµРЅС‚С‹ РІ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРµ j РІ РґРёР°РїР°Р·РѕРЅРµ СЃС‚РѕР»Р±С†РѕРІ [from_i, to_i)
 			for (int k = low; k < up; k++) {
 				int col = columns[k];
 				if (col >= from_i && col < to_i) {
 					sub.values.push_back(values[k]);
-					sub.columns.push_back(col - from_i);  // пересчитываем индекс столбца
+					sub.columns.push_back(col - from_i);  // РїРµСЂРµСЃС‡РёС‚С‹РІР°РµРј РёРЅРґРµРєСЃ СЃС‚РѕР»Р±С†Р°
 					count++;
 				}
 			}
@@ -68,7 +68,7 @@ namespace Matrixes {
 		return sub;
 	}
 
-	//Единичная матрица
+	//Р•РґРёРЅРёС‡РЅР°СЏ РјР°С‚СЂРёС†Р°
 	CSR3 CSR3::Unary(int n) {
 		CSR3 res;
 		res.M = n;
@@ -132,7 +132,7 @@ namespace Matrixes {
 				fout << j << " " << columns[i] << " " << values[i] << "\n";
 		}
 	}
-	//Конвертация в плотную матрицу
+	//РљРѕРЅРІРµСЂС‚Р°С†РёСЏ РІ РїР»РѕС‚РЅСѓСЋ РјР°С‚СЂРёС†Сѓ
 	Matrix CSR3::Convert() {
 		//cout << "m_cols=" << N << " m_rows=" << M << endl;
 		Matrix Matr(N, M, 0.0);
@@ -148,7 +148,7 @@ namespace Matrixes {
 		cout << "Convert success" << endl;
 		return Matr;
 	}
-	//Транспонирование
+	//РўСЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРёРµ
 	void CSR3::Transpose() {
 		CSR3 res = this->new_Transpose();
 		this->M = res.M;
@@ -170,7 +170,7 @@ namespace Matrixes {
 		transposed.rowIndex.resize(transposed.M + 1, 0);
 
 		for (int k = 0; k < L; k++) {
-			int col = columns[k];  // столбец исходной матрицы - это строка транспонированной
+			int col = columns[k];  // СЃС‚РѕР»Р±РµС† РёСЃС…РѕРґРЅРѕР№ РјР°С‚СЂРёС†С‹ - СЌС‚Рѕ СЃС‚СЂРѕРєР° С‚СЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРЅРѕР№
 			transposed.rowIndex[col + 1]++;
 		}
 
@@ -178,7 +178,7 @@ namespace Matrixes {
 			transposed.rowIndex[i] += transposed.rowIndex[i - 1];
 		}
 
-		std::vector<int> current_pos = transposed.rowIndex;  // текущие позиции для вставки
+		std::vector<int> current_pos = transposed.rowIndex;  // С‚РµРєСѓС‰РёРµ РїРѕР·РёС†РёРё РґР»СЏ РІСЃС‚Р°РІРєРё
 
 		for (int j = 0; j < M; j++) {
 			for (int k = rowIndex[j]; k < rowIndex[j + 1]; k++) {
@@ -207,29 +207,29 @@ namespace Matrixes {
 			int b_start = B.rowIndex[j];
 			int b_end = B.rowIndex[j + 1];
 
-			int a_now = a_start, b_now = b_start; //счётчики для будущих циклов
+			int a_now = a_start, b_now = b_start; //СЃС‡С‘С‚С‡РёРєРё РґР»СЏ Р±СѓРґСѓС‰РёС… С†РёРєР»РѕРІ
 
-			while (a_now < a_end && b_now < b_end) { // проходим пока не закончатся элементы в j-й строке
+			while (a_now < a_end && b_now < b_end) { // РїСЂРѕС…РѕРґРёРј РїРѕРєР° РЅРµ Р·Р°РєРѕРЅС‡Р°С‚СЃСЏ СЌР»РµРјРµРЅС‚С‹ РІ j-Р№ СЃС‚СЂРѕРєРµ
 				int a_col = A.columns[a_now];
 				int b_col = B.columns[b_now];
 
-				// работаем с остатками ненулевых элементов в матрицах A и B
+				// СЂР°Р±РѕС‚Р°РµРј СЃ РѕСЃС‚Р°С‚РєР°РјРё РЅРµРЅСѓР»РµРІС‹С… СЌР»РµРјРµРЅС‚РѕРІ РІ РјР°С‚СЂРёС†Р°С… A Рё B
 				if (a_col < b_col) {
-					// Только в A
+					// РўРѕР»СЊРєРѕ РІ A
 					C.values.push_back(A.values[a_now]);
 					C.columns.push_back(a_col);
 					a_now++;
 				}
 				else if (b_col < a_col) {
-					// Только в B
+					// РўРѕР»СЊРєРѕ РІ B
 					C.values.push_back(B.values[b_now]);
 					C.columns.push_back(b_col);
 					b_now++;
 				}
 				else {
-					// В обеих матрицах
+					// Р’ РѕР±РµРёС… РјР°С‚СЂРёС†Р°С…
 					double sum = A.values[a_now] + B.values[b_now];
-					if (abs(sum) > 1e-12) {  // очень малые значения отбрасываются
+					if (abs(sum) > 1e-12) {  // РѕС‡РµРЅСЊ РјР°Р»С‹Рµ Р·РЅР°С‡РµРЅРёСЏ РѕС‚Р±СЂР°СЃС‹РІР°СЋС‚СЃСЏ
 						C.values.push_back(sum);
 						C.columns.push_back(a_col);
 					}
@@ -238,14 +238,14 @@ namespace Matrixes {
 				}
 			}
 
-			// Остатки из A
+			// РћСЃС‚Р°С‚РєРё РёР· A
 			while (a_now < a_end) {
 				C.values.push_back(A.values[a_now]);
 				C.columns.push_back(A.columns[a_now]);
 				a_now++;
 			}
 
-			// Остатки из B
+			// РћСЃС‚Р°С‚РєРё РёР· B
 			while (b_now < b_end) {
 				C.values.push_back(B.values[b_now]);
 				C.columns.push_back(B.columns[b_now]);
@@ -260,16 +260,16 @@ namespace Matrixes {
 	}
 
 	CSR3 CSR3::operator*(double c) const {
-		CSR3 result(*this);  // конструктор копирования
+		CSR3 result(*this);  // РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ
 		for (int i = 0; i < result.L; i++) {
 			result.values[i] *= c;
 		}
 		return result;
-		// если с=0 то матрица не переделывается, а просто значения становятся равными 0
+		// РµСЃР»Рё СЃ=0 С‚Рѕ РјР°С‚СЂРёС†Р° РЅРµ РїРµСЂРµРґРµР»С‹РІР°РµС‚СЃСЏ, Р° РїСЂРѕСЃС‚Рѕ Р·РЅР°С‡РµРЅРёСЏ СЃС‚Р°РЅРѕРІСЏС‚СЃСЏ СЂР°РІРЅС‹РјРё 0
 	}
 
 	CSR3 CSR3::operator-() const {
-		// Умножаем матрицу на -1.0
+		// РЈРјРЅРѕР¶Р°РµРј РјР°С‚СЂРёС†Сѓ РЅР° -1.0
 		return *this * (-1.0);
 	}
 
@@ -282,7 +282,7 @@ namespace Matrixes {
 
 		for (int j = 0; j < M; j++) {
 			double sum = 0.0;
-			// Проходим по всем ненулевым элементам строки j
+			// РџСЂРѕС…РѕРґРёРј РїРѕ РІСЃРµРј РЅРµРЅСѓР»РµРІС‹Рј СЌР»РµРјРµРЅС‚Р°Рј СЃС‚СЂРѕРєРё j
 			for (int k = rowIndex[j]; k < rowIndex[j + 1]; k++) {
 				sum += values[k] * vec[columns[k]];
 			}
@@ -291,17 +291,17 @@ namespace Matrixes {
 
 		return result;
 	}
-	//индексация элемента по мультииндексу
+	//РёРЅРґРµРєСЃР°С†РёСЏ СЌР»РµРјРµРЅС‚Р° РїРѕ РјСѓР»СЊС‚РёРёРЅРґРµРєСЃСѓ
 	double CSR3::operator[](pair<int, int> coordinates) const {
 		int i = coordinates.first;
 		int j = coordinates.second;
-		// Поиск элемента в строке i
+		// РџРѕРёСЃРє СЌР»РµРјРµРЅС‚Р° РІ СЃС‚СЂРѕРєРµ i
 		for (int idx = rowIndex[i]; idx < rowIndex[i + 1]; idx++) {
 			if (columns[idx] == j) {
-				return values[idx]; // Элемент найден
+				return values[idx]; // Р­Р»РµРјРµРЅС‚ РЅР°Р№РґРµРЅ
 			}
 		}
 
-		return 0.0; // Элемент не найден - возвращаем 0
+		return 0.0; // Р­Р»РµРјРµРЅС‚ РЅРµ РЅР°Р№РґРµРЅ - РІРѕР·РІСЂР°С‰Р°РµРј 0
 	}
 }
