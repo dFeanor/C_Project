@@ -30,7 +30,6 @@ int main() {
         std::cout << "-> SUCCESS. 2D picture." << std::endl;
         std::cout << "-> Slice sizes: " << testSlice.getDim1() << " x " << testSlice.getDim2() << std::endl;
 
-        // Сохраним "чистый" срез для контроля
         testSlice.saveToFile("C:/QtProjects/C_Project-main/images/result_1_raw_slice.raw");
     }
     else {
@@ -40,7 +39,6 @@ int main() {
 
     std::cout << "[STEP 3] addWalls() test on slice" << std::endl;
 
-    // Запоминаем старые размеры для проверки
     uint64_t oldH = testSlice.getDim1();
     uint64_t oldW = testSlice.getDim2();
 
@@ -50,7 +48,6 @@ int main() {
     std::cout << "-> Old size: " << oldH << " x " << oldW << std::endl;
     std::cout << "-> New size:  " << testSlice.getDim1() << " x " << testSlice.getDim2() << std::endl;
 
-    // Сохраняем результат
     if (testSlice.saveToFile("C:/QtProjects/C_Project-main/images/result_2_slice_with_walls.raw")) {
         std::cout << "-> File saved: result_2_slice_with_walls.raw" << std::endl;
     }
@@ -59,8 +56,6 @@ int main() {
 
     Picture subRegion;
 
-    // Попробуем вырезать квадрат из центра изображения
-    // Размеры берем динамически, чтобы не выйти за границы
     uint64_t size = std::min(testSlice.getDim1(), testSlice.getDim2()) / 4;
     uint64_t startX = testSlice.getDim2() / 2 - size / 2;
     uint64_t startY = testSlice.getDim1() / 2 - size / 2;
@@ -72,7 +67,6 @@ int main() {
         std::cout << "-> SUCCESS. Size of subregion: "
             << subRegion.getDim1() << " x " << subRegion.getDim2() << std::endl;
 
-        // Сохраняем результат
         if (subRegion.saveToFile("C:/QtProjects/C_Project-main/images/result_3_subregion.raw")) {
             std::cout << "-> File saved: result_3_subregion.raw" << std::endl;
         }
@@ -85,19 +79,16 @@ int main() {
 
     Picture sliceX, sliceY;
 
-    // X-срез (середина)
     if (pic3D.extractSlice(sliceX, SliceAxis::X, pic3D.getDim2() / 2)) {
         sliceX.saveToFile("C:/QtProjects/C_Project-main/images/result_4_slice_X.raw");
         std::cout << "-> X-slice saved." << std::endl;
     }
 
-    // Y-срез (середина)
     if (pic3D.extractSlice(sliceY, SliceAxis::Y, pic3D.getDim1() / 2)) {
         sliceY.saveToFile("C:/QtProjects/C_Project-main/images/result_5_slice_Y.raw");
         std::cout << "-> Y-slice saved." << std::endl;
     }
 
-    //проверка библиотеки стандартных изображений 
     string path = "C:/QtProjects/C_Project-main/images/";
     Picture testImage;
     std::cout << "--- START TEST: Standard Images ---" << std::endl;
@@ -127,8 +118,6 @@ int main() {
     if (testImage.saveToFile(noporePath)) {
         std::cout << "Cylinder without pore saved to: " << porePath << std::endl;
     }
-    std::cout << "--- END TEST ---" << std::endl;
-
     std::cout << "--- END TEST ---" << std::endl;
 
     return 0;
