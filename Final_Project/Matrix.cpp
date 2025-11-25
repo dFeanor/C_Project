@@ -8,17 +8,6 @@ namespace Matrixes {
 	Matrix::Matrix(int row_num, int col_num, double value) : 
 		m_row_num(row_num), m_col_num(col_num), m_data(row_num * col_num, value) {}
 
-	//Matrix::Matrix(int row_num, string type) : Matrix(row_num, row_num) {
-	//	if (type == "eye") {
-	//		for (int i = 0; i < row_num; ++i) {
-	//			m_data[i * row_num + i] = 1.0;
-	//		}
-	//	}
-	//	else {
-	//		throw invalid_argument("Других типов матриц нет");
-	//	}
-	//}
-
 	int Matrix::get_row_num() const {
 		return m_row_num;
 	}
@@ -51,9 +40,6 @@ namespace Matrixes {
 			for (int j = 0; j < col_end - col_start; ++j) {
 				result.m_data[i * (col_end - col_start) + j] = m_data[(i + row_start) * m_col_num + j + col_start];
 			}
-			//memcpy(result.m_data.data() + i * (col_end - col_start),
-			//	m_data.data() + (row_start + i) * m_col_num + col_start,
-			//	sizeof(double) * (col_end - col_start));
 		}
 		return result;
 	}
