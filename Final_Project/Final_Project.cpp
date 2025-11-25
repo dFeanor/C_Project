@@ -127,6 +127,7 @@ int main() {
     if (testImage.saveToFile(noporePath)) {
         std::cout << "Cylinder without pore saved to: " << porePath << std::endl;
     }
+    std::cout << "--- END TEST ---" << std::endl;
 
     std::cout << "--- END TEST ---" << std::endl;
 
