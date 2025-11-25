@@ -94,9 +94,10 @@ if __name__ == '__main__':
     # Например: "C:/Users/User/Documents/image.bin" или просто "image.bin" #
     # если файл лежит рядом со скриптом.                               #
 
-    FILE_TO_VISUALIZE_IN_PYCHARM = "./images/gen_cylinder_with_pore.raw" 
+    FILE_TO_VISUALIZE_IN_PYCHARM = "./images/gen_cylinder_without_pore.raw" 
 
     # ================================================================= #
 
     # Вызываем основную функцию с указанным путем
     read_and_visualize(FILE_TO_VISUALIZE_IN_PYCHARM)
+    

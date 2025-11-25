@@ -58,6 +58,8 @@ public:
     void createCylinderWithPore(size_t width, size_t height, double radiusOuter, double radiusInner);
     //Метод генерации извилистого канала - синусоиды (библиотека стандартных изображений)
     void createTortuousChannel(size_t width, size_t height, double channelWidth, double amplitude, double frequency);
+    //Метод удаления пор
+    void removeIsolatedPores();
     private:
     // Используем типы с гарантированным размером 8 байт
     uint64_t N1;

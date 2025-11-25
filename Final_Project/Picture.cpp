@@ -1,6 +1,7 @@
 #include "Picture.h"
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 // Реализация конструктора
 Picture::Picture() : N1(0), N2(0), N3(0), resolution(0.0), pixels(nullptr) {}
@@ -498,5 +499,87 @@ void Picture::createTortuousChannel(size_t width, size_t height, double channelW
             }
         }
     }
-    std::cout << "Generated Sinusoidal Channel." << std::endl;
+    std::cout << "Generated Sinusoidal Channel." << std::endl;  
+}
+
+uint64_t idx2D(uint64_t y, uint64_t x, uint64_t W) {
+    return y * W + x;
+}
+
+void Picture::removeIsolatedPores() {
+    if (pixels == nullptr) {
+        std::cerr << "Error: Cannot remove pores from an empty picture." << std::endl;
+        return;
+    }
+    if (N3 > 0) {
+        std::cerr << "Error: removeIsolatedPores works only for 2D images." << std::endl;
+        return;
+    }
+
+    const unsigned char PORE = 0;
+    const unsigned char ROCK = 255;
+
+    uint64_t H = N1;
+    uint64_t W = N2;
+
+    // Массив пометок: 1 — пора доступна (соединена со стороной), 0 — нет
+    std::vector<uint8_t> mark(H * W, 0);
+
+    // Очередь BFS на основе vector
+    std::vector<std::pair<uint64_t, uint64_t>> queue;
+    queue.reserve(H * W); // чтобы не было лишних realoc
+
+    size_t head = 0; // указатель на "начало" очереди
+
+    for (uint64_t y = 0; y < H; ++y) {
+        if (pixels[idx2D(y, 0, W)] == PORE) {
+            mark[idx2D(y, 0, W)] = 1;
+            queue.emplace_back(y, 0);
+        }
+    }
+
+    if (W > 1) {
+        for (uint64_t y = 0; y < H; ++y) {
+            if (pixels[idx2D(y, W - 1, W)] == PORE) {
+                mark[idx2D(y, W - 1, W)] = 1;
+                queue.emplace_back(y, W - 1);
+            }
+        }
+    }
+
+    const int dy[4] = {-1, 1, 0, 0};
+    const int dx[4] = {0, 0, -1, 1};
+
+    while (head < queue.size()) {
+        auto [y, x] = queue[head];
+        ++head;
+
+        for (int k = 0; k < 4; ++k) {
+            int ny = (int)y + dy[k];
+            int nx = (int)x + dx[k];
+
+            if (ny < 0 || ny >= (int)H || nx < 0 || nx >= (int)W)
+                continue;
+
+            uint64_t id = idx2D(ny, nx, W);
+            if (pixels[id] == PORE && mark[id] == 0) {
+                mark[id] = 1;
+                queue.emplace_back(ny, nx);
+            }
+        }
+    }
+
+    uint64_t removed = 0;
+
+    for (uint64_t y = 0; y < H; ++y) {
+        for (uint64_t x = 0; x < W; ++x) {
+            uint64_t id = idx2D(y, x, W);
+            if (pixels[id] == PORE && mark[id] == 0) {
+                pixels[id] = ROCK;
+                removed++;
+            }
+        }
+    }
+
+    std::cout << "removeIsolatedPores(): removed " << removed << " isolated pores." << std::endl;
 }
