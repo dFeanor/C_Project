@@ -123,7 +123,7 @@ namespace Matrixes {
 		Matrix Matr(N, M, 0.0);
 		for (int j = 0; j < M; j++) {
 			for (int k = rowIndex[j]; k < rowIndex[j + 1]; k++) {
-				Matr.set_element(columns[k], j, values[k]);
+				Matr.set_elem(columns[k], j, values[k]);
 			}
 		}
 		cout << "Convert success" << endl;

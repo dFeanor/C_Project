@@ -4,14 +4,16 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "Matrix.h"
+#include "CSR3.h" 
 
 namespace Matrixes {
 
 	class SLAYSolver {
 	public:
 		static Matrix solve_cholesky(const Matrix& A, const Matrix& b);
-
+		static std::vector<double> solve_cholesky(const CSR3& A, const std::vector<double>& b);
 	private:
 
 		SLAYSolver() {}
