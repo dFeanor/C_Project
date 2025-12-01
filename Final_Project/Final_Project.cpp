@@ -1,42 +1,82 @@
-﻿#include "Picture.h"
 #include <iostream>
+#include <vector>
+#include <fstream>
+#include <cmath>
+#include <iomanip>
+#include "CSR3.h"    
+#include "SLAY.h"    
+
+using namespace std;
+using namespace Matrixes;
+
+void createTestFile(const string& filename, int M, int N, int L, const vector<tuple<int, int, double>>& data) {
+    ofstream fout(filename);
+    if (!fout.is_open()) {
+        cerr << "Error: Could not create file " << filename << endl;
+        return;
+    }
+    fout << M << " " << N << " " << L << endl;
+    for (const auto& item : data) {
+        fout << get<0>(item) << " " << get<1>(item) << " " << get<2>(item) << endl;
+    }
+    fout.close();
+}
 
 int main() {
-    Picture image3D;
-    std::string path = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\";
-    // Предполагается, что у вас есть 3D файл "picture_3d.raw"
-    if (!image3D.loadFromFile(path + "picture_3d.raw", true)) {
-        return 1;
+    cout << "==========================================" << endl;
+    cout << "     MODULE 2: SPARSE CHOLESKY TESTS      " << endl;
+    cout << "==========================================" << endl << endl;
+
+    cout << "[TEST 1] Solving valid SPD matrix (3x3)..." << endl;
+    string file1 = "test_valid.txt";
+    createTestFile(file1, 3, 3, 7, {
+        {0, 0, 4.0}, {0, 1, 1.0},
+        {1, 0, 1.0}, {1, 1, 4.0}, {1, 2, 1.0},
+        {2, 1, 1.0}, {2, 2, 4.0}
+    });
+
+    try {
+        CSR3 A = CSR3::Read(file1);
+        vector<double> b = { 5.0, 6.0, 5.0 };
+
+        vector<double> x = SLAYSolver::solve_cholesky(A, b);
+
+        cout << "Result x: { ";
+        bool passed = true;
+        for (double val : x) {
+            cout << fixed << setprecision(4) << val << " ";
+            if (abs(val - 1.0) > 1e-4) passed = false;
+        }
+        cout << "}" << endl;
+
+        if (passed) cout << "-> STATUS: PASSED" << endl;
+        else        cout << "-> STATUS: FAILED (Values incorrect)" << endl;
+
+    } catch (const exception& e) {
+        cout << "-> STATUS: FAILED (Exception: " << e.what() << ")" << endl;
     }
+    cout << "------------------------------------------" << endl << endl;
 
-    std::cout << "\n--- Original 3D Image Info ---" << std::endl;
-    image3D.PrintPicture();
+    cout << "[TEST 2] Testing non-positive definite matrix (Error handling)..." << endl;
+    string file2 = "test_invalid.txt";
+    createTestFile(file2, 2, 2, 4, {
+        {0, 0, 1.0}, {0, 1, 2.0},
+        {1, 0, 2.0}, {1, 1, 1.0}
+    });
 
-    // --- Извлечение и сохранение Z-слайса ---
-    Picture z_slice;
-    // Возьмем 10-й слайс по глубине (ось Z)
-    if (image3D.extractSlice(z_slice, SliceAxis::Z, 10)) {
-        std::cout << "\n--- Z-Slice Info ---" << std::endl;
-        z_slice.PrintPicture();
-        z_slice.saveToFile(path + "z_slice_10.raw");
-    }
+    try {
+        CSR3 A = CSR3::Read(file2);
+        vector<double> b = { 1.0, 1.0 };
+        
+        vector<double> x = SLAYSolver::solve_cholesky(A, b);
+        
+        cout << "-> STATUS: FAILED (Method should have thrown an exception but didn't)" << endl;
 
-    // --- Извлечение и сохранение Y-слайса ---
-    Picture y_slice;
-    // Возьмем 25-й горизонтальный слайс (ось Y)
-    if (image3D.extractSlice(y_slice, SliceAxis::Y, 25)) {
-        std::cout << "\n--- Y-Slice Info ---" << std::endl;
-        y_slice.PrintPicture();
-        y_slice.saveToFile(path + "y_slice_25.raw");
-    }
-
-    // --- Извлечение и сохранение X-слайса ---
-    Picture x_slice;
-    // Возьмем 30-й вертикальный слайс (ось X)
-    if (image3D.extractSlice(x_slice, SliceAxis::X, 30)) {
-        std::cout << "\n--- X-Slice Info ---" << std::endl;
-        x_slice.PrintPicture();
-        x_slice.saveToFile(path + "x_slice_30.raw");
+    } catch (const runtime_error& e) {
+        cout << "Caught expected exception: " << e.what() << endl;
+        cout << "-> STATUS: PASSED (Error correctly detected)" << endl;
+    } catch (...) {
+        cout << "-> STATUS: FAILED (Wrong exception type)" << endl;
     }
 
     return 0;
