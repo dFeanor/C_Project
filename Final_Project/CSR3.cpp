@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include "Matrix.h"
 #include "CSR3.h"
 #include <iomanip>
 using namespace std;
@@ -132,22 +131,7 @@ namespace Matrixes {
 				fout << j << " " << columns[i] << " " << values[i] << "\n";
 		}
 	}
-	//Конвертация в плотную матрицу
-	Matrix CSR3::Convert() {
-		//cout << "m_cols=" << N << " m_rows=" << M << endl;
-		Matrix Matr(N, M, 0.0);
-		//Matr.PrintMatrix();
-		for (int j = 0; j < M; j++) {
-			//cout << "line j = " << j << endl;
-			//cout << "rowIndex[0]=" << rowIndex[0] << " rowIndex[1]=" << rowIndex[1] << " rowIndex[2]=" << rowIndex[2] << endl;
-			for (int k = rowIndex[j]; k < rowIndex[j + 1]; k++) {
-				//cout <<"k = (before line j is) " << rowIndex[j] << " elements" << " column = " <<  columns[k] << " values[k]=" << values[k]  << endl;
-				Matr.set_elem(columns[k], j, values[k]);
-			}
-		}
-		cout << "Convert success" << endl;
-		return Matr;
-	}
+	
 	//Транспонирование
 	void CSR3::Transpose() {
 		CSR3 res = this->new_Transpose();
