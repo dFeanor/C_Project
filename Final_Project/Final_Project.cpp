@@ -5,47 +5,91 @@ using std::cout;
 
 int main() {
 
-    // Picture image2D;
-    // std::string path = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\";
-    // Предполагается, что у вас есть 3D файл "picture_3d.raw"
-    // if (!image2D.loadFromFile(path + "picture_2d.raw", true)) {
-    //     return 1;
-    // }
+    std::string filePath = "C:/QtProjects/C_Project-main/images/picture_3d.raw";
+    std::cout << "START TEST" << std::endl;
 
+    Picture pic3D;
+    std::cout << "[STEP 1] 3D Loading: " << filePath << std::endl;
 
-    //std::cout << "\n--- Original 3D Image Info ---" << std::endl;
-    //image3D.PrintPicture();
+    if (!pic3D.loadFromFile(filePath, true)) {
+        std::cerr << "Error: Can't open file: " << filePath << std::endl;
+        return 1;
+    }
 
-    //// --- Извлечение и сохранение Z-слайса ---
-    //Picture z_slice;
-    //// Возьмем 10-й слайс по глубине (ось Z)
-    //if (image3D.extractSlice(z_slice, SliceAxis::Z, 10)) {
-    //    std::cout << "\n--- Z-Slice Info ---" << std::endl;
-    //    z_slice.PrintPicture();
-    //    z_slice.saveToFile(path + "z_slice_10.raw");
-    //}
+    std::cout << "-> SUCCESS. 3D: "
+        << pic3D.getDim1() << " x "
+        << pic3D.getDim2() << " x "
+        << pic3D.getDim3() << std::endl;
 
-    //// --- Извлечение и сохранение Y-слайса ---
-    //Picture y_slice;
-    //// Возьмем 25-й горизонтальный слайс (ось Y)
-    //if (image3D.extractSlice(y_slice, SliceAxis::Y, 25)) {
-    //    std::cout << "\n--- Y-Slice Info ---" << std::endl;
-    //    y_slice.PrintPicture();
-    //    y_slice.saveToFile(path + "y_slice_25.raw");
-    //}
+    Picture testSlice;
+    uint64_t sliceIndex = pic3D.getDim3() / 2;
 
-    //// --- Извлечение и сохранение X-слайса ---
-    //Picture x_slice;
-    //// Возьмем 30-й вертикальный слайс (ось X)
-    //if (image3D.extractSlice(x_slice, SliceAxis::X, 30)) {
-    //    std::cout << "\n--- X-Slice Info ---" << std::endl;
-    //    x_slice.PrintPicture();
-    //    x_slice.saveToFile(path + "x_slice_30.raw");
-    //}
+    std::cout << "[STEP 2] Z-dim (index " << sliceIndex << ")..." << std::endl;
 
+    if (pic3D.extractSlice(testSlice, SliceAxis::Z, sliceIndex)) {
+        std::cout << "-> SUCCESS. 2D picture." << std::endl;
+        std::cout << "-> Slice sizes: " << testSlice.getDim1() << " x " << testSlice.getDim2() << std::endl;
 
-    //проверка библиотеки стандартных изображений 
-    string path = "../images/";
+        testSlice.saveToFile("C:/QtProjects/C_Project-main/images/result_1_raw_slice.raw");
+    }
+    else {
+        std::cerr << "Error: Can't extract slice" << std::endl;
+        return 1;
+    }
+
+    std::cout << "[STEP 3] addWalls() test on slice" << std::endl;
+
+    uint64_t oldH = testSlice.getDim1();
+    uint64_t oldW = testSlice.getDim2();
+
+    testSlice.addWalls();
+
+    std::cout << "-> Walls added." << std::endl;
+    std::cout << "-> Old size: " << oldH << " x " << oldW << std::endl;
+    std::cout << "-> New size:  " << testSlice.getDim1() << " x " << testSlice.getDim2() << std::endl;
+
+    if (testSlice.saveToFile("C:/QtProjects/C_Project-main/images/result_2_slice_with_walls.raw")) {
+        std::cout << "-> File saved: result_2_slice_with_walls.raw" << std::endl;
+    }
+
+    std::cout << "[STEP 4] Test of extractSubregion()..." << std::endl;
+
+    Picture subRegion;
+
+    uint64_t size = std::min(testSlice.getDim1(), testSlice.getDim2()) / 4;
+    uint64_t startX = testSlice.getDim2() / 2 - size / 2;
+    uint64_t startY = testSlice.getDim1() / 2 - size / 2;
+
+    std::cout << "-> Try to extraxt square " << size << "x" << size
+        << " in coords (" << startX << ", " << startY << ")" << std::endl;
+
+    if (testSlice.extractSubregion(subRegion, startX, startY, size)) {
+        std::cout << "-> SUCCESS. Size of subregion: "
+            << subRegion.getDim1() << " x " << subRegion.getDim2() << std::endl;
+
+        if (subRegion.saveToFile("C:/QtProjects/C_Project-main/images/result_3_subregion.raw")) {
+            std::cout << "-> File saved: result_3_subregion.raw" << std::endl;
+        }
+    }
+    else {
+        std::cerr << "ERROR: Can't extract subregion" << std::endl;
+    }
+
+    std::cout << "\n[Step 5] X and Y slices..." << std::endl;
+
+    Picture sliceX, sliceY;
+
+    if (pic3D.extractSlice(sliceX, SliceAxis::X, pic3D.getDim2() / 2)) {
+        sliceX.saveToFile("C:/QtProjects/C_Project-main/images/result_4_slice_X.raw");
+        std::cout << "-> X-slice saved." << std::endl;
+    }
+
+    if (pic3D.extractSlice(sliceY, SliceAxis::Y, pic3D.getDim1() / 2)) {
+        sliceY.saveToFile("C:/QtProjects/C_Project-main/images/result_5_slice_Y.raw");
+        std::cout << "-> Y-slice saved." << std::endl;
+    }
+
+    string path = "C:/QtProjects/C_Project-main/images/";
     Picture testImage;
     std::cout << "--- START TEST: Standard Images ---" << std::endl;
     testImage.createCylinder(200, 200, 50.0);
@@ -65,6 +109,14 @@ int main() {
     std::string porePath = path + "gen_cylinder_with_pore.raw";
     if (testImage.saveToFile(porePath)) {
         std::cout << "Cylinder with pore saved to: " << porePath << std::endl;
+    }
+
+    Picture poreImage;
+    testImage.loadFromFile(porePath, false);
+    testImage.removeIsolatedPores();
+    std::string noporePath = path + "gen_cylinder_without_pore.raw";
+    if (testImage.saveToFile(noporePath)) {
+        std::cout << "Cylinder without pore saved to: " << porePath << std::endl;
     }
     std::cout << "--- END TEST ---" << std::endl;
 
