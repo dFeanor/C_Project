@@ -12,7 +12,7 @@ namespace Matrixes {
 
 	class SLAYSolver {
 	public:
-		static Matrix solve_cholesky(const Matrix& A, const Matrix& b);
+		static std::vector<double> solve_cholesky(const Matrix& A, const std::vector<double>& b);
 		static std::vector<double> solve_cholesky(const CSR3& A, const std::vector<double>& b);
 	private:
 
