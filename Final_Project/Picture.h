@@ -4,9 +4,13 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-
+#include <cstring>
+#include <math.h>
+using namespace std;
 enum class SliceAxis {
-    X, Y, Z
+    X,
+    Y,
+    Z
 };
 
 class Picture {
@@ -20,7 +24,6 @@ public:
 
     bool extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t startY, uint64_t size) const;
     bool extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceIndex) const;
-
     uint64_t getDim1() const;
     uint64_t getDim2() const;
     uint64_t getDim3() const;
@@ -28,12 +31,13 @@ public:
     double getResolution() const;
     uint64_t getTotalPixels() const;
     const unsigned char* getPixelData() const;
-
     void addWalls();
-
     void PrintPicture();
-
-private:
+    void createCylinder(size_t width, size_t height, double radius);
+    void createCylinderWithPore(size_t width, size_t height, double radiusOuter, double radiusInner);
+    void createTortuousChannel(size_t width, size_t height, double channelWidth, double amplitude, double frequency);
+    void removeIsolatedPores();
+    private:
     uint64_t N1;
     uint64_t N2;
     uint64_t N3;

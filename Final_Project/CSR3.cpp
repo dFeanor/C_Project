@@ -9,6 +9,7 @@
 using namespace std;
 
 namespace Matrixes {
+
 	void CSR3::setElement(int i, int j, double element) {
 		int low = rowIndex[j];
 		int up = rowIndex[j + 1];
@@ -38,8 +39,8 @@ namespace Matrixes {
 	}
 	CSR3 CSR3::Submatrix(int from_i, int to_i, int from_j, int to_j) {
 		CSR3 sub;
-		sub.M = to_j - from_j;
-		sub.N = to_i - from_i;
+		sub.M = to_j - from_j;  
+		sub.N = to_i - from_i; 
 		sub.rowIndex.resize(sub.M + 1);
 
 		int count = 0;
@@ -63,6 +64,7 @@ namespace Matrixes {
 		sub.L = count;
 		return sub;
 	}
+
 
 	CSR3 CSR3::Unary(int n) {
 		CSR3 res;
@@ -117,7 +119,6 @@ namespace Matrixes {
 				fout << j << " " << columns[i] << " " << values[i] << "\n";
 		}
 	}
-
 	Matrix CSR3::Convert() {
 		Matrix Matr(N, M, 0.0);
 		for (int j = 0; j < M; j++) {
@@ -128,7 +129,6 @@ namespace Matrixes {
 		cout << "Convert success" << endl;
 		return Matr;
 	}
-
 	void CSR3::Transpose() {
 		CSR3 res = this->new_Transpose();
 		this->M = res.M;
@@ -150,7 +150,7 @@ namespace Matrixes {
 		transposed.rowIndex.resize(transposed.M + 1, 0);
 
 		for (int k = 0; k < L; k++) {
-			int col = columns[k];  
+			int col = columns[k];
 			transposed.rowIndex[col + 1]++;
 		}
 
@@ -158,7 +158,7 @@ namespace Matrixes {
 			transposed.rowIndex[i] += transposed.rowIndex[i - 1];
 		}
 
-		std::vector<int> current_pos = transposed.rowIndex;  
+		std::vector<int> current_pos = transposed.rowIndex; 
 
 		for (int j = 0; j < M; j++) {
 			for (int k = rowIndex[j]; k < rowIndex[j + 1]; k++) {
@@ -193,17 +193,21 @@ namespace Matrixes {
 				int a_col = A.columns[a_now];
 				int b_col = B.columns[b_now];
 
+			
 				if (a_col < b_col) {
+				
 					C.values.push_back(A.values[a_now]);
 					C.columns.push_back(a_col);
 					a_now++;
 				}
 				else if (b_col < a_col) {
+					
 					C.values.push_back(B.values[b_now]);
 					C.columns.push_back(b_col);
 					b_now++;
 				}
 				else {
+				
 					double sum = A.values[a_now] + B.values[b_now];
 					if (abs(sum) > 1e-12) { 
 						C.values.push_back(sum);
@@ -214,12 +218,14 @@ namespace Matrixes {
 				}
 			}
 
+		
 			while (a_now < a_end) {
 				C.values.push_back(A.values[a_now]);
 				C.columns.push_back(A.columns[a_now]);
 				a_now++;
 			}
 
+			
 			while (b_now < b_end) {
 				C.values.push_back(B.values[b_now]);
 				C.columns.push_back(B.columns[b_now]);
@@ -234,11 +240,12 @@ namespace Matrixes {
 	}
 
 	CSR3 CSR3::operator*(double c) const {
-		CSR3 result(*this);
+		CSR3 result(*this);  
 		for (int i = 0; i < result.L; i++) {
 			result.values[i] *= c;
 		}
 		return result;
+		
 	}
 
 	CSR3 CSR3::operator-() const {
@@ -267,10 +274,10 @@ namespace Matrixes {
 		int j = coordinates.second;
 		for (int idx = rowIndex[i]; idx < rowIndex[i + 1]; idx++) {
 			if (columns[idx] == j) {
-				return values[idx];
+				return values[idx]; 
 			}
 		}
 
-		return 0.0;
+		return 0.0; 
 	}
 }
