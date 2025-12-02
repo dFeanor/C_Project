@@ -54,7 +54,6 @@ namespace Matrixes {
 			}
 			x[{i, 0}] = (y[{i, 0}] - sum) / L[{i, i}];
 		}
-
 		return x;
 	}
 
