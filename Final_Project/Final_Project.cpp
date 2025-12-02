@@ -5,43 +5,60 @@ using std::cout;
 
 int main() {
 
-    // Picture image2D;
-    // std::string path = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\";
-    // Предполагается, что у вас есть 3D файл "picture_3d.raw"
-    // if (!image2D.loadFromFile(path + "picture_2d.raw", true)) {
-    //     return 1;
-    // }
+    std::cout << "\n[ШАГ 3] Тестирование addWalls() на полученном срезе..." << std::endl;
 
+    uint64_t oldH = testSlice.getDim1();
+    uint64_t oldW = testSlice.getDim2();
 
-    //std::cout << "\n--- Original 3D Image Info ---" << std::endl;
-    //image3D.PrintPicture();
+    testSlice.addWalls();
 
-    //// --- Извлечение и сохранение Z-слайса ---
-    //Picture z_slice;
-    //// Возьмем 10-й слайс по глубине (ось Z)
-    //if (image3D.extractSlice(z_slice, SliceAxis::Z, 10)) {
-    //    std::cout << "\n--- Z-Slice Info ---" << std::endl;
-    //    z_slice.PrintPicture();
-    //    z_slice.saveToFile(path + "z_slice_10.raw");
-    //}
+    std::cout << "-> Стенки добавлены." << std::endl;
+    std::cout << "-> Старые размеры: " << oldH << " x " << oldW << std::endl;
+    std::cout << "-> Новые размеры:  " << testSlice.getDim1() << " x " << testSlice.getDim2() << std::endl;
 
-    //// --- Извлечение и сохранение Y-слайса ---
-    //Picture y_slice;
-    //// Возьмем 25-й горизонтальный слайс (ось Y)
-    //if (image3D.extractSlice(y_slice, SliceAxis::Y, 25)) {
-    //    std::cout << "\n--- Y-Slice Info ---" << std::endl;
-    //    y_slice.PrintPicture();
-    //    y_slice.saveToFile(path + "y_slice_25.raw");
-    //}
+    if (testSlice.saveToFile("D:\\VS_Projects\\Magister_projects\\C_Project\\images\\result_2_slice_with_walls.raw")) {
+        std::cout << "-> Файл сохранен: result_2_slice_with_walls.raw" << std::endl;
+    }
 
-    //// --- Извлечение и сохранение X-слайса ---
-    //Picture x_slice;
-    //// Возьмем 30-й вертикальный слайс (ось X)
-    //if (image3D.extractSlice(x_slice, SliceAxis::X, 30)) {
-    //    std::cout << "\n--- X-Slice Info ---" << std::endl;
-    //    x_slice.PrintPicture();
-    //    x_slice.saveToFile(path + "x_slice_30.raw");
-    //}
+    std::cout << "\n[ШАГ 4] Тестирование extractSubregion()..." << std::endl;
+
+    Picture subRegion;
+
+    uint64_t size = std::min(testSlice.getDim1(), testSlice.getDim2()) / 4;
+    uint64_t startX = testSlice.getDim2() / 2 - size / 2;
+    uint64_t startY = testSlice.getDim1() / 2 - size / 2;
+
+    std::cout << "-> Попытка вырезать квадрат " << size << "x" << size
+        << " в координатах (" << startX << ", " << startY << ")" << std::endl;
+
+    if (testSlice.extractSubregion(subRegion, startX, startY, size)) {
+        std::cout << "-> Успешно. Размеры подобласти: "
+            << subRegion.getDim1() << " x " << subRegion.getDim2() << std::endl;
+
+        // Сохраняем результат
+        if (subRegion.saveToFile("D:\\VS_Projects\\Magister_projects\\C_Project\\images\\result_3_subregion.raw")) {
+            std::cout << "-> Файл сохранен: result_3_subregion.raw" << std::endl;
+        }
+    }
+    else {
+        std::cerr << "ОШИБКА: Не удалось вырезать подобласть." << std::endl;
+    }
+
+    std::cout << "\n[ШАГ 5] Проверка срезов по осям X и Y (сохранение файлов)..." << std::endl;
+
+    Picture sliceX, sliceY;
+
+    if (pic3D.extractSlice(sliceX, SliceAxis::X, pic3D.getDim2() / 2)) {
+        sliceX.saveToFile("D:\\VS_Projects\\Magister_projects\\C_Project\\images\\result_4_slice_X.raw");
+        std::cout << "-> X-срез сохранен." << std::endl;
+    }
+
+    if (pic3D.extractSlice(sliceY, SliceAxis::Y, pic3D.getDim1() / 2)) {
+        sliceY.saveToFile("D:\\VS_Projects\\Magister_projects\\C_Project\\images\\result_5_slice_Y.raw");
+        std::cout << "-> Y-срез сохранен." << std::endl;
+    }
+
+    std::cout << "\n=== ТЕСТ ЗАВЕРШЕН УСПЕШНО ===" << std::endl;
 
 
     //проверка библиотеки стандартных изображений 
