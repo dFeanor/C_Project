@@ -1,11 +1,12 @@
 #include "Picture.h"
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 Picture::Picture() : N1(0), N2(0), N3(0), resolution(0.0), pixels(nullptr) {}
 
 Picture::~Picture() {
-    delete[] pixels; 
+    delete[] pixels;
 }
 
 bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
@@ -22,9 +23,8 @@ bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
         file.read(reinterpret_cast<char*>(&N3), sizeof(N3));
     }
     else {
-        N3 = 0; 
+        N3 = 0;
     }
-
     file.read(reinterpret_cast<char*>(&resolution), sizeof(resolution));
 
     if (!file) {
@@ -48,7 +48,7 @@ bool Picture::loadFromFile(const std::string& filePath, bool is3D) {
 
     if (!file) {
         std::cerr << "Error: Failed to read pixel data from file " << filePath << std::endl;
-        delete[] pixels; 
+        delete[] pixels;
         pixels = nullptr;
         return false;
     }
@@ -89,9 +89,7 @@ bool Picture::saveToFile(const std::string& filePath) const {
     return true;
 }
 
-
 bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t startY, uint64_t size) const {
-
     if (pixels == nullptr) {
         std::cerr << "Error: Cannot extract subregion from an empty picture. Load a file first." << std::endl;
         return false;
@@ -100,6 +98,7 @@ bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t
         std::cerr << "Error: extractSubregion is implemented for 2D images only. Current image is 3D." << std::endl;
         return false;
     }
+
 
     if (size == 0) {
         std::cerr << "Error: Subregion size cannot be zero." << std::endl;
@@ -119,6 +118,7 @@ bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t
         std::cerr << "Error: Output picture is not empty. Please provide an empty Picture object." << std::endl;
         return false;
     }
+
     uint64_t new_N1 = size;
     uint64_t new_N2 = size;
     uint64_t newTotalPixels = new_N1 * new_N2;
@@ -132,7 +132,6 @@ bool Picture::extractSubregion(Picture& outputPicture, uint64_t startX, uint64_t
     for (uint64_t r = 0; r < new_N1; ++r) {
         uint64_t sourceRowStartIdx = (startY + r) * N2 + startX;
         uint64_t destRowStartIdx = r * new_N2;
-
         std::memcpy(newPixelsBuffer + destRowStartIdx,
             pixels + sourceRowStartIdx,
             new_N2 * sizeof(unsigned char));
@@ -172,16 +171,16 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
             std::cerr << "Error: X-axis slice index " << sliceIndex << " is out of bounds [0, " << N2 - 1 << "]." << std::endl;
             return false;
         }
-        new_N1 = N1; 
-        new_N2 = N3; 
+        new_N1 = N1;
+        new_N2 = N3;
         break;
     case SliceAxis::Y:
         if (sliceIndex >= N1) {
             std::cerr << "Error: Y-axis slice index " << sliceIndex << " is out of bounds [0, " << N1 - 1 << "]." << std::endl;
             return false;
         }
-        new_N1 = N2; 
-        new_N2 = N3; 
+        new_N1 = N2;
+        new_N2 = N3;
         break;
     case SliceAxis::Z:
         if (sliceIndex >= N3) {
@@ -192,22 +191,20 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
         new_N2 = N2;
         break;
     }
-
     uint64_t totalNewPixels = new_N1 * new_N2;
     unsigned char* newPixels = new (std::nothrow) unsigned char[totalNewPixels];
     if (newPixels == nullptr) {
         std::cerr << "Error: Failed to allocate memory for the slice." << std::endl;
         return false;
     }
-
     uint64_t currentNewPixel = 0;
     switch (axis) {
-    case SliceAxis::Z: { 
+    case SliceAxis::Z: {
         uint64_t offset = sliceIndex * (N1 * N2);
         std::memcpy(newPixels, pixels + offset, totalNewPixels);
         break;
     }
-    case SliceAxis::Y: { 
+    case SliceAxis::Y: {
         for (uint64_t k = 0; k < N3; ++k) {
             for (uint64_t j = 0; j < N2; ++j) {
                 uint64_t sourceIndex = k * (N1 * N2) + sliceIndex * N2 + j;
@@ -229,7 +226,7 @@ bool Picture::extractSlice(Picture& outputSlice, SliceAxis axis, uint64_t sliceI
 
     outputSlice.N1 = new_N1;
     outputSlice.N2 = new_N2;
-    outputSlice.N3 = 0; 
+    outputSlice.N3 = 0;
     outputSlice.resolution = this->resolution;
     outputSlice.pixels = newPixels;
     outputSlice.wallsAdded = false;
@@ -256,26 +253,22 @@ void Picture::addWalls() {
 
     const unsigned char WALL_PIXEL_VALUE = 255;
 
-    uint64_t old_N1 = N1;    
-    uint64_t new_N1 = N1 + 2;
+    uint64_t old_N1 = N1;  
+    uint64_t new_N1 = N1 + 2;  
 
-    uint64_t rowSizeBytes = N2; 
+    uint64_t rowSizeBytes = N2;
     uint64_t oldTotalPixels = old_N1 * N2;
     uint64_t newTotalPixels = new_N1 * N2;
 
     unsigned char* newPixels = new unsigned char[newTotalPixels];
 
     std::memset(newPixels, WALL_PIXEL_VALUE, rowSizeBytes);
-
     std::memcpy(newPixels + rowSizeBytes, pixels, oldTotalPixels);
-
     std::memset(newPixels + rowSizeBytes + oldTotalPixels, WALL_PIXEL_VALUE, rowSizeBytes);
-
     delete[] pixels;
-
     pixels = newPixels; 
-    N1 = new_N1;        
-    wallsAdded = true;  
+    N1 = new_N1;      
+    wallsAdded = true;
 
     std::cout << "Successfully added walls. New dimensions (N1 x N2): " << N1 << " x " << N2 << std::endl;
 }
@@ -310,7 +303,7 @@ void Picture::PrintPicture() {
     if (pixels == nullptr) {
         std::cout << "Picture is empty or not loaded." << std::endl;
         std::cout << "--------------------" << std::endl;
-        return; 
+        return;
     }
 
     bool is3D = (N3 > 0);
@@ -323,12 +316,9 @@ void Picture::PrintPicture() {
         std::cout << "Type: 2D" << std::endl;
         std::cout << "Dimensions (N1 x N2): " << getDim1() << " x " << getDim2() << std::endl;
     }
-
     std::cout << "Resolution: " << getResolution() << std::endl;
-
     uint64_t totalPixels = getTotalPixels();
     std::cout << "Total Pixels: " << totalPixels << std::endl;
-
     std::cout << "Sample of first pixels: ";
     if (totalPixels > 0) {
         uint64_t pixelsToShow = std::min(totalPixels, static_cast<uint64_t>(16));
@@ -344,8 +334,6 @@ void Picture::PrintPicture() {
     std::cout << "--------------------" << std::endl;
 }
 
-
-//метод генерации цилиндра 
 void Picture::createCylinder(size_t width, size_t height, double radius) {
     delete[] pixels;
     N1 = height; 
@@ -373,7 +361,6 @@ void Picture::createCylinder(size_t width, size_t height, double radius) {
     std::cout << "Generated Cylinder: " << width << "x" << height << ", R=" << radius << std::endl;
 }
 
-//цилиндр с порой посередине
 void Picture::createCylinderWithPore(size_t width, size_t height, double radiusOuter, double radiusInner) {
     delete[] pixels;
     N1 = height;
@@ -428,5 +415,71 @@ void Picture::createTortuousChannel(size_t width, size_t height, double channelW
             }
         }
     }
-    std::cout << "Generated Sinusoidal Channel." << std::endl;
+    std::cout << "Generated Sinusoidal Channel." << std::endl;  
+}
+
+uint64_t idx2D(uint64_t y, uint64_t x, uint64_t W) {
+    return y * W + x;
+}
+
+void Picture::removeIsolatedPores() {
+    if (pixels == nullptr) {
+        std::cerr << "Error: Cannot remove pores from an empty picture." << std::endl;
+        return;
+    }
+    if (N3 > 0) {
+        std::cerr << "Error: removeIsolatedPores works only for 2D images." << std::endl;
+        return;
+    }
+    const unsigned char PORE = 0;
+    const unsigned char ROCK = 255;
+    uint64_t H = N1;
+    uint64_t W = N2;
+    std::vector<uint8_t> mark(H * W, 0);
+    std::vector<std::pair<uint64_t, uint64_t>> queue;
+    queue.reserve(H * W); 
+    size_t head = 0;
+    for (uint64_t y = 0; y < H; ++y) {
+        if (pixels[idx2D(y, 0, W)] == PORE) {
+            mark[idx2D(y, 0, W)] = 1;
+            queue.emplace_back(y, 0);
+        }
+    }
+    if (W > 1) {
+        for (uint64_t y = 0; y < H; ++y) {
+            if (pixels[idx2D(y, W - 1, W)] == PORE) {
+                mark[idx2D(y, W - 1, W)] = 1;
+                queue.emplace_back(y, W - 1);
+            }
+        }
+    }
+    const int dy[4] = {-1, 1, 0, 0};
+    const int dx[4] = {0, 0, -1, 1};
+    while (head < queue.size()) {
+        auto [y, x] = queue[head];
+        ++head;
+        for (int k = 0; k < 4; ++k) {
+            int ny = (int)y + dy[k];
+            int nx = (int)x + dx[k];
+            if (ny < 0 || ny >= (int)H || nx < 0 || nx >= (int)W)
+                continue;
+            uint64_t id = idx2D(ny, nx, W);
+            if (pixels[id] == PORE && mark[id] == 0) {
+                mark[id] = 1;
+                queue.emplace_back(ny, nx);
+            }
+        }
+    }
+    uint64_t removed = 0;
+    for (uint64_t y = 0; y < H; ++y) {
+        for (uint64_t x = 0; x < W; ++x) {
+            uint64_t id = idx2D(y, x, W);
+            if (pixels[id] == PORE && mark[id] == 0) {
+                pixels[id] = ROCK;
+                removed++;
+            }
+        }
+    }
+
+    std::cout << "removeIsolatedPores(): removed " << removed << " isolated pores." << std::endl;
 }

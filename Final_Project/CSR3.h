@@ -7,16 +7,16 @@
 using namespace std;
 
 namespace Matrixes {
-	//zero-based
+	class SLAYSolver;
 	class CSR3 {
 		vector<double> values;
 		vector<int> columns;
 		vector<int> rowIndex;
+	friend class SLAYSolver;
 	public:
-		int M; 
-		int N; 
-		int L; 
-		
+		int M;
+		int N;
+		int L;
 		void setElement(int i, int j, double element);
 		double getElement(int i, int j);
 		CSR3 Submatrix(int from_i, int to_i, int from_j, int to_j);
