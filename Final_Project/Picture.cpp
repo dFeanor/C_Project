@@ -343,3 +343,90 @@ void Picture::PrintPicture() {
     std::cout << std::endl;
     std::cout << "--------------------" << std::endl;
 }
+
+
+//метод генерации цилиндра 
+void Picture::createCylinder(size_t width, size_t height, double radius) {
+    delete[] pixels;
+    N1 = height; 
+    N2 = width;
+    N3 = 0;
+    resolution = 1.0; 
+    wallsAdded = false;
+    pixels = new unsigned char[N1 * N2];
+
+    double centerX = N2 / 2.0;
+    double centerY = N1 / 2.0;
+    double radiusSq = radius * radius;
+
+    for (size_t i = 0; i < N1; ++i) {      
+        for (size_t j = 0; j < N2; ++j) {
+            double distSq = std::pow(j - centerX, 2) + std::pow(i - centerY, 2);
+            size_t index = i * N2 + j;
+            if (distSq <= radiusSq) {
+                pixels[index] = 255;
+            } else {
+                pixels[index] = 0;
+            }
+        }
+    }
+    std::cout << "Generated Cylinder: " << width << "x" << height << ", R=" << radius << std::endl;
+}
+
+//цилиндр с порой посередине
+void Picture::createCylinderWithPore(size_t width, size_t height, double radiusOuter, double radiusInner) {
+    delete[] pixels;
+    N1 = height;
+    N2 = width;
+    N3 = 0;
+    resolution = 1.0;
+    wallsAdded = false;
+    pixels = new unsigned char[N1 * N2];
+    double centerX = N2 / 2.0;
+    double centerY = N1 / 2.0;
+    double rOutSq = radiusOuter * radiusOuter;
+    double rInSq = radiusInner * radiusInner;
+
+    for (size_t i = 0; i < N1; ++i) {      
+        for (size_t j = 0; j < N2; ++j) {  
+            
+            double distSq = std::pow(j - centerX, 2) + std::pow(i - centerY, 2);
+            size_t index = i * N2 + j;
+            if (distSq <= rInSq) {
+                pixels[index] = 0; 
+            }
+            else if (distSq <= rOutSq) {
+                pixels[index] = 255; 
+            } 
+            else {pixels[index] = 0;   
+            }
+        }
+    }
+    std::cout << "Generated Cylinder with Pore: R_out=" << radiusOuter << ", R_in=" << radiusInner << std::endl;
+}
+
+
+void Picture::createTortuousChannel(size_t width, size_t height, double channelWidth, double amplitude, double frequency) {
+    delete[] pixels;
+
+    N1 = height;
+    N2 = width;
+    N3 = 0;
+    resolution = 1.0;
+    wallsAdded = false;
+
+    pixels = new unsigned char[N1 * N2];
+    double centerLineY = N1 / 2.0; 
+    for (size_t j = 0; j < N2; ++j) {
+        double shift = amplitude * sin(frequency * j);
+        double currentCenterY = centerLineY + shift;
+        for (size_t i = 0; i < N1; ++i) {
+            size_t index = i * N2 + j;if (abs(i - currentCenterY) <= (channelWidth / 2.0)) {
+                pixels[index] = 0;
+            } else {
+                pixels[index] = 255; 
+            }
+        }
+    }
+    std::cout << "Generated Sinusoidal Channel." << std::endl;
+}

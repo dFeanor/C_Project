@@ -1,42 +1,9 @@
-﻿#include <iostream>
-#include <string>
 #include "Picture.h"
+#include <iostream>
+using std::cout;
+
 
 int main() {
-    setlocale(LC_ALL, "");
-
-    std::string filePath = "D:\\VS_Projects\\Magister_projects\\C_Project\\images\\picture_3d.raw";
-
-    std::cout << "=== ЗАПУСК ИНТЕГРАЦИОННОГО ТЕСТА ===" << std::endl;
-
-    Picture pic3D;
-    std::cout << "\n[ШАГ 1] Загрузка 3D файла: " << filePath << std::endl;
-
-    if (!pic3D.loadFromFile(filePath, true)) {
-        std::cerr << "ОШИБКА: Не удалось открыть файл. Проверьте путь!" << std::endl;
-        return 1;
-    }
-
-    std::cout << "-> Успешно. Размеры 3D: "
-        << pic3D.getDim1() << " x "
-        << pic3D.getDim2() << " x "
-        << pic3D.getDim3() << std::endl;
-
-    Picture testSlice;
-    uint64_t sliceIndex = pic3D.getDim3() / 2;
-
-    std::cout << "\n[ШАГ 2] Извлечение Z-среза (индекс " << sliceIndex << ")..." << std::endl;
-
-    if (pic3D.extractSlice(testSlice, SliceAxis::Z, sliceIndex)) {
-        std::cout << "-> Успешно. Получено 2D изображение." << std::endl;
-        std::cout << "-> Размеры среза: " << testSlice.getDim1() << " x " << testSlice.getDim2() << std::endl;
-
-        testSlice.saveToFile("D:\\VS_Projects\\Magister_projects\\C_Project\\images\\result_1_raw_slice.raw");
-    }
-    else {
-        std::cerr << "ОШИБКА: Не удалось извлечь срез." << std::endl;
-        return 1;
-    }
 
     std::cout << "\n[ШАГ 3] Тестирование addWalls() на полученном срезе..." << std::endl;
 
@@ -92,6 +59,31 @@ int main() {
     }
 
     std::cout << "\n=== ТЕСТ ЗАВЕРШЕН УСПЕШНО ===" << std::endl;
+
+
+    //проверка библиотеки стандартных изображений 
+    string path = "../images/";
+    Picture testImage;
+    std::cout << "--- START TEST: Standard Images ---" << std::endl;
+    testImage.createCylinder(200, 200, 50.0);
+    testImage.addWalls();
+    std::string cylinderPath = path + "gen_cylinder.raw";
+    if (testImage.saveToFile(cylinderPath)) {
+        std::cout << "Cylinder saved to: " << cylinderPath << std::endl;
+    }
+    testImage.createTortuousChannel(400, 100, 30.0, 20.0, 0.05);
+    testImage.addWalls();
+    std::string channelPath = path + "gen_channel.raw";
+    if (testImage.saveToFile(channelPath)) {
+        std::cout << "Channel saved to: " << channelPath << std::endl;
+    }
+    testImage.createCylinderWithPore(200, 200, 60.0, 20.0);
+    testImage.addWalls();
+    std::string porePath = path + "gen_cylinder_with_pore.raw";
+    if (testImage.saveToFile(porePath)) {
+        std::cout << "Cylinder with pore saved to: " << porePath << std::endl;
+    }
+    std::cout << "--- END TEST ---" << std::endl;
 
     return 0;
 }
