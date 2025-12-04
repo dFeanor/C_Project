@@ -48,6 +48,7 @@ void createSparseTestFile(const string& filename, int M, int N, int L, const vec
 }
 
 int main() {
+    //SLAYSolver solver;
     cout << "==========================================" << endl;
     cout << "     MODULE: DENSE CHOLESKY TESTS         " << endl;
     cout << "==========================================" << endl << endl;
@@ -63,10 +64,10 @@ int main() {
 
     try {
         Matrix A = Matrix::from_file(d_file1);
-        vector<double> b = { 6.0, 6.0, 6.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file("bdense1.txt");//{ 6.0, 6.0, 6.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file("densex_out1.txt", x);
         cout << "Result x: { ";
         bool passed = true;
         for (double val : x) {
@@ -94,10 +95,10 @@ int main() {
 
     try {
         Matrix A = Matrix::from_file(d_file2);
-        vector<double> b = { 1.0, 1.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file("bdense2.txt");//{ 1.0, 1.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file("densex_out2.txt", x);
         cout << "-> STATUS: FAILED (Should have thrown exception)" << endl;
 
     }
@@ -123,10 +124,10 @@ int main() {
 
     try {
         CSR3 A = CSR3::Read(s_file1);
-        vector<double> b = { 5.0, 6.0, 5.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file("bcsr1.txt");//{ 5.0, 6.0, 5.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file("csrx_out1.txt", x);
         cout << "Result x: { ";
         bool passed = true;
         for (double val : x) {
@@ -152,11 +153,12 @@ int main() {
         });
 
     try {
+        
         CSR3 A = CSR3::Read(s_file2);
-        vector<double> b = { 1.0, 1.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file("bdense2.txt");//{ 1.0, 1.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file("csrx_out2.txt", x);
         cout << "-> STATUS: FAILED (Should have thrown exception)" << endl;
 
     }

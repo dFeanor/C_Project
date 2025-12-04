@@ -86,6 +86,38 @@ namespace Matrixes {
 		return x;
 	}
 
+	std::vector<double> SLAYSolver::read_vector_from_file(const std::string& filename) {
+        std::ifstream in(filename);
+        if (!in.is_open()) {
+            throw std::runtime_error("Cannot open vector file: " + filename);
+        }
+
+        std::vector<double> v;
+        double value;
+
+        while (in >> value) {
+            v.push_back(value);
+        }
+
+        if (v.empty()) {
+            throw std::runtime_error("Vector file is empty or invalid: " + filename);
+        }
+
+        return v;
+    }
+
+    void SLAYSolver::write_vector_to_file(const std::string& filename,
+                                          const std::vector<double>& v) {
+        std::ofstream out(filename);
+        if (!out.is_open()) {
+            throw std::runtime_error("Cannot open output file: " + filename);
+        }
+
+        for (double x : v) {
+            out << x << "\n";
+        }
+    }
+
 	std::vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const std::vector<double>& b) {
 		int N = A.N;
 
