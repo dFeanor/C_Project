@@ -13,6 +13,7 @@ namespace Matrixes {
 		vector<int> columns;
 		vector<int> rowIndex;
 	friend class SLAYSolver;
+	friend class StokesSolver;
 	public:
 		int M;
 		int N;

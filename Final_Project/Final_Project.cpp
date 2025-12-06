@@ -48,30 +48,32 @@ void createSparseTestFile(const string& filename, int M, int N, int L, const vec
 }
 
 int main() {
+    /*
+    //SLAYSolver solver;
     cout << "==========================================" << endl;
     cout << "     MODULE: DENSE CHOLESKY TESTS         " << endl;
     cout << "==========================================" << endl << endl;
 
-    cout << "[TEST 1] Solving valid SPD matrix (3x3)..." << endl;
-
-    string d_file1 = "dense_test_valid.txt";
-    createDenseTestFile(d_file1, 3, 3, {
+    cout << "[TEST 1] Solving valid SPD matrix..." << endl;
+    string path = "module2_2\\sparse\\3\\";
+    string d_file1 = path + "matrix.txt";
+    /*createDenseTestFile(d_file1, 3, 3, {
         4.0, 1.0, 1.0,
         1.0, 4.0, 1.0,
         1.0, 1.0, 4.0
-        });
-
+        });*/
+    /*
     try {
         Matrix A = Matrix::from_file(d_file1);
-        vector<double> b = { 6.0, 6.0, 6.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file(path + "b.txt");
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file(path + "x_out.txt", x);
         cout << "Result x: { ";
         bool passed = true;
         for (double val : x) {
             cout << fixed << setprecision(4) << val << " ";
-            if (abs(val - 1.0) > 1e-4) passed = false;
+            //if (abs(val - 1.0) > 1e-4) passed = false;
         }
         cout << "}" << endl;
 
@@ -83,7 +85,7 @@ int main() {
         cout << "-> STATUS: FAILED (Exception: " << e.what() << ")" << endl;
     }
     cout << "------------------------------------------" << endl << endl;
-
+    /*
     cout << "[TEST 2] Testing non-positive definite matrix..." << endl;
 
     string d_file2 = "dense_test_invalid.txt";
@@ -94,10 +96,10 @@ int main() {
 
     try {
         Matrix A = Matrix::from_file(d_file2);
-        vector<double> b = { 1.0, 1.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file("bdense2.txt");//{ 1.0, 1.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file("densex_out2.txt", x);
         cout << "-> STATUS: FAILED (Should have thrown exception)" << endl;
 
     }
@@ -108,30 +110,31 @@ int main() {
     catch (const exception& e) {
         cout << "-> STATUS: FAILED (Wrong exception type)" << endl;
     }
-
+    */
     cout << "==========================================" << endl;
     cout << "     MODULE: SPARSE CHOLESKY TESTS        " << endl;
     cout << "==========================================" << endl << endl;
 
-    cout << "[TEST 1] Solving valid SPD matrix (3x3)..." << endl;
-    string s_file1 = "sparse_test_valid.txt";
-    createSparseTestFile(s_file1, 3, 3, 7, {
+    cout << "[TEST 1] Solving valid SPD matrix..." << endl;
+    string path = "module2_2\\sparse\\3\\";
+    string s_file1 = "matrix.txt";
+    /*createSparseTestFile(s_file1, 3, 3, 7, {
         {0, 0, 4.0}, {0, 1, 1.0},
         {1, 0, 1.0}, {1, 1, 4.0}, {1, 2, 1.0},
         {2, 1, 1.0}, {2, 2, 4.0}
-        });
+        });*/
 
     try {
-        CSR3 A = CSR3::Read(s_file1);
-        vector<double> b = { 5.0, 6.0, 5.0 };
+        CSR3 A = CSR3::Read(path + s_file1);
+        vector<double> b = SLAYSolver::read_vector_from_file(path + "b.txt");//{ 5.0, 6.0, 5.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file(path + "x_out.txt", x);
         cout << "Result x: { ";
         bool passed = true;
         for (double val : x) {
             cout << fixed << setprecision(4) << val << " ";
-            if (abs(val - 1.0) > 1e-4) passed = false;
+            //if (abs(val - 1.0) > 1e-4) passed = false;
         }
         cout << "}" << endl;
 
@@ -143,7 +146,7 @@ int main() {
         cout << "-> STATUS: FAILED (Exception: " << e.what() << ")" << endl;
     }
     cout << "------------------------------------------" << endl << endl;
-
+    /*
     cout << "[TEST 2] Testing non-positive definite matrix..." << endl;
     string s_file2 = "sparse_test_invalid.txt";
     createSparseTestFile(s_file2, 2, 2, 4, {
@@ -152,11 +155,12 @@ int main() {
         });
 
     try {
+        
         CSR3 A = CSR3::Read(s_file2);
-        vector<double> b = { 1.0, 1.0 };
+        vector<double> b = SLAYSolver::read_vector_from_file("bdense2.txt");//{ 1.0, 1.0 };
 
         vector<double> x = SLAYSolver::solve_cholesky(A, b);
-
+        SLAYSolver::write_vector_to_file("csrx_out2.txt", x);
         cout << "-> STATUS: FAILED (Should have thrown exception)" << endl;
 
     }
@@ -167,6 +171,6 @@ int main() {
     catch (...) {
         cout << "-> STATUS: FAILED (Wrong exception type)" << endl;
     }
-
+    */
     return 0;
 }

@@ -17,7 +17,7 @@ namespace FluidDynamics {
         StokesSolver(const Picture& picture, double dP);
 
         // Main Uzawa algorithm loop
-        void solve(double tolerance = 1e-6, int maxIterations = 10000, double alpha = 0.1);
+        void solve(double tolerance = 1e-6, int maxIterations = 10000);
 
         // Calculates absolute permeability using Darcy's law
         double calculatePermeability() const;
@@ -67,8 +67,8 @@ namespace FluidDynamics {
         // Computes divergence of velocity field
         Matrixes::Matrix computeDivergence() const;
 
-        // Updates pressure: P_new = P_old - alpha * div(u)
-        void updatePressure(const Matrixes::Matrix& divergence, double alpha);
+        // Updates pressure: P_new = P_old - div(u)
+        void updatePressure(const Matrixes::Matrix& divergence);
     };
 
 } // namespace FluidDynamics
