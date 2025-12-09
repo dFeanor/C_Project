@@ -65,7 +65,6 @@ if __name__ == '__main__':
 
     read_and_visualize(FILE_TO_VISUALIZE_IN_PYCHARM)
     
-<<<<<<< HEAD
 
 import struct
 import numpy as np
@@ -134,5 +133,3 @@ if __name__ == '__main__':
 
     read_and_visualize(FILE_TO_VISUALIZE_IN_PYCHARM)
     
-=======
->>>>>>> parent of 211f030 (AAAAAAAAA)
