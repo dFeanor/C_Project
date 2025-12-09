@@ -6,10 +6,6 @@
 #include "Matrix.h"
 using namespace std;
 
-namespace FluidDynamics {
-	class StokesSolver;
-}
-
 namespace Matrixes {
 	class SLAYSolver;
 	class CSR3 {
@@ -17,7 +13,7 @@ namespace Matrixes {
 		vector<int> columns;
 		vector<int> rowIndex;
 	friend class SLAYSolver;
-	friend class FluidDynamics::StokesSolver;
+	friend class StokesSolver;
 	public:
 		int M;
 		int N;
