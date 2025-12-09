@@ -132,7 +132,6 @@ namespace Matrixes {
 			}
 		}
 		return result;
-
 	}
 
 }

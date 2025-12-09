@@ -3,15 +3,24 @@
 #include <cmath>
 #include <map>
 #include <vector>
+#include <string>
+#include <iostream>
 
 namespace Matrixes {
 
-	Matrix SLAYSolver::solve_cholesky(const Matrix& A, const Matrix& b) {
+	static double get_vec_norm(const std::vector<double>& v) {
+		double sum = 0.0;
+		for (double val : v) sum += val * val;
+		return std::sqrt(sum);
+	}
+
+	std::vector<double> SLAYSolver::solve_cholesky(const Matrix& A, const std::vector<double>& b) {
 		int n = A.get_row_num();
+
 		if (n != A.get_col_num()) {
 			throw std::invalid_argument("Matrix A must be square for Cholesky decomposition.");
 		}
-		if (n != b.get_row_num() || b.get_col_num() != 1) {
+		if (n != b.size()) {
 			throw std::invalid_argument("Dimension mismatch between matrix A and vector b.");
 		}
 
@@ -37,29 +46,81 @@ namespace Matrixes {
 			}
 		}
 
-		Matrix y(n, 1);
+		std::vector<double> y(n);
 		for (int i = 0; i < n; ++i) {
 			double sum = 0.0;
 			for (int j = 0; j < i; ++j) {
-				sum += L[{i, j}] * y[{j, 0}];
+				sum += L[{i, j}] * y[j];
 			}
-			y[{i, 0}] = (b[{i, 0}] - sum) / L[{i, i}];
+			y[i] = (b[i] - sum) / L[{i, i}];
 		}
 
-		Matrix x(n, 1);
+		std::vector<double> x(n);
 		for (int i = n - 1; i >= 0; --i) {
 			double sum = 0.0;
 			for (int j = i + 1; j < n; ++j) {
-				sum += L[{j, i}] * x[{j, 0}];
+				sum += L[{j, i}] * x[j];
 			}
-			x[{i, 0}] = (y[{i, 0}] - sum) / L[{i, i}];
+			x[i] = (y[i] - sum) / L[{i, i}];
+		}
+
+		double norm_b = get_vec_norm(b);
+		if (norm_b < 1e-16) norm_b = 1.0;
+
+		std::vector<double> residual(n);
+		for (int i = 0; i < n; ++i) {
+			double Ax_i = 0.0;
+			for (int j = 0; j < n; ++j) {
+				Ax_i += A[{i, j}] * x[j];
+			}
+			residual[i] = b[i] - Ax_i;
+		}
+
+		double norm_res = get_vec_norm(residual);
+		double rel_error = norm_res / norm_b;
+
+		if (rel_error > 1e-8) {
+			throw std::runtime_error("Solution accuracy check failed. Relative error: " + std::to_string(rel_error));
 		}
 
 		return x;
 	}
 
+	std::vector<double> SLAYSolver::read_vector_from_file(const std::string& filename) {
+        std::ifstream in(filename);
+        if (!in.is_open()) {
+            throw std::runtime_error("Cannot open vector file: " + filename);
+        }
+
+        std::vector<double> v;
+        double value;
+
+        while (in >> value) {
+            v.push_back(value);
+        }
+
+        if (v.empty()) {
+            throw std::runtime_error("Vector file is empty or invalid: " + filename);
+        }
+
+        return v;
+    }
+
+    void SLAYSolver::write_vector_to_file(const std::string& filename,
+                                          const std::vector<double>& v) {
+        std::ofstream out(filename);
+        if (!out.is_open()) {
+            throw std::runtime_error("Cannot open output file: " + filename);
+        }
+
+        for (double x : v) {
+            out << setprecision(16) << x << "\n";
+        }
+    }
+
 	std::vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const std::vector<double>& b) {
 		int N = A.N;
+
 		if (N != A.M) {
 			throw std::invalid_argument("Error: CSR Matrix must be square.");
 		}
@@ -147,6 +208,27 @@ namespace Matrixes {
 				}
 			}
 			x[i] = (y[i] - sum) / LT_rows[i][i];
+		}
+
+		double norm_b = get_vec_norm(b);
+		if (norm_b < 1e-16) norm_b = 1.0;
+
+		std::vector<double> residual(N);
+		for (int i = 0; i < N; ++i) {
+			double Ax_i = 0.0;
+			for (int k = A.rowIndex[i]; k < A.rowIndex[i + 1]; ++k) {
+				int col = A.columns[k];
+				double val = A.values[k];
+				Ax_i += val * x[col];
+			}
+			residual[i] = b[i] - Ax_i;
+		}
+
+		double norm_res = get_vec_norm(residual);
+		double rel_error = norm_res / norm_b;
+
+		if (rel_error > 1e-8) {
+			throw std::runtime_error("CSR Solution accuracy check failed. Relative error: " + std::to_string(rel_error));
 		}
 
 		return x;
