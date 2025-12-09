@@ -1,135 +1,58 @@
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
-import sys
 import os
 
+DIR = "picture_results"
 
-def read_and_visualize(filepath):
-    if not os.path.exists(filepath):
-        print(f"Ошибка: Файл не найден по пути '{filepath}'")
-        sys.exit(1)
+def load(path):
+    if not os.path.exists(path): return None
+    with open(path, 'rb') as f:
+        r, c = struct.unpack('ii', f.read(8))
+        d = np.frombuffer(f.read(), dtype=np.float64)
+    return d.reshape((r, c))
 
-    try:
-        with open(filepath, 'rb') as f:
-            header_data = f.read(24)
-            if len(header_data) < 24:
-                print(f"Ошибка: Файл '{filepath}' слишком мал и не содержит полного заголовка.")
-                sys.exit(1)
+def show_comp():
+    num = load(os.path.join(DIR, "case1_num_mag.raw"))
+    ana = load(os.path.join(DIR, "case1_ana_mag.raw"))
+    if num is None or ana is None: return
 
-            N1, N2, resolution = struct.unpack('<QQd', header_data)
-
-            print("--- Информация об изображении ---")
-            print(f"Размеры (строки x столбцы): {N1} x {N2}")
-            print(f"Разрешение: {resolution}")
-            print("---------------------------------")
-
-            if N1 == 0 or N2 == 0:
-                print("Ошибка: Размеры изображения не могут быть нулевыми.")
-                sys.exit(1)
-
-            image_data = np.fromfile(f, dtype=np.uint8, count=N1 * N2)
-
-            if image_data.size < N1 * N2:
-                print("Ошибка: Неожиданный конец файла. Удалось прочитать меньше пикселей, чем заявлено в заголовке.")
-                sys.exit(1)
-
-            image_matrix = image_data.reshape((N1, N2))
-
-            plt.style.use('default')
-            fig, ax = plt.subplots(figsize=(10, 8))
-
-            im = ax.imshow(image_matrix, cmap='gray_r', vmin=0, vmax=255)
-
-            ax.set_title(f'Изображение из файла: {os.path.basename(filepath)}\nРазмеры: {N1}x{N2}', fontsize=14)
-            ax.set_xlabel(f'Столбцы (N2 = {N2})')
-            ax.set_ylabel(f'Строки (N1 = {N1})')
-
-            cbar = fig.colorbar(im, ax=ax)
-            cbar.set_label('Значение пикселя (0=пора [белый], 255=порода [черный])')
-
-            plt.tight_layout()  
-            plt.show()
-
-    except IOError as e:
-        print(f"Ошибка чтения файла: {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Произошла непредвиденная ошибка: {e}")
-        sys.exit(1)
-
-
-if __name__ == '__main__':
-    FILE_TO_VISUALIZE_IN_PYCHARM = "./images/gen_cylinder_without_pore.raw" 
-
-    read_and_visualize(FILE_TO_VISUALIZE_IN_PYCHARM)
+    diff = np.abs(num - ana)
+    fig, ax = plt.subplots(3, 1, figsize=(6, 10))
+    fig.suptitle("Task 1: Poiseuille Comparison")
     
-
-import struct
-import numpy as np
-import matplotlib.pyplot as plt
-import argparse
-import sys
-import os
-
-
-def read_and_visualize(filepath):
-    if not os.path.exists(filepath):
-        print(f"Ошибка: Файл не найден по пути '{filepath}'")
-        sys.exit(1)
-
-    try:
-        with open(filepath, 'rb') as f:
-            header_data = f.read(24)
-            if len(header_data) < 24:
-                print(f"Ошибка: Файл '{filepath}' слишком мал и не содержит полного заголовка.")
-                sys.exit(1)
-
-            N1, N2, resolution = struct.unpack('<QQd', header_data)
-
-            print("--- Информация об изображении ---")
-            print(f"Размеры (строки x столбцы): {N1} x {N2}")
-            print(f"Разрешение: {resolution}")
-            print("---------------------------------")
-
-            if N1 == 0 or N2 == 0:
-                print("Ошибка: Размеры изображения не могут быть нулевыми.")
-                sys.exit(1)
-
-            image_data = np.fromfile(f, dtype=np.uint8, count=N1 * N2)
-
-            if image_data.size < N1 * N2:
-                print("Ошибка: Неожиданный конец файла. Удалось прочитать меньше пикселей, чем заявлено в заголовке.")
-                sys.exit(1)
-
-            image_matrix = image_data.reshape((N1, N2))
-
-            plt.style.use('default')
-            fig, ax = plt.subplots(figsize=(10, 8))
-
-            im = ax.imshow(image_matrix, cmap='gray_r', vmin=0, vmax=255)
-
-            ax.set_title(f'Изображение из файла: {os.path.basename(filepath)}\nРазмеры: {N1}x{N2}', fontsize=14)
-            ax.set_xlabel(f'Столбцы (N2 = {N2})')
-            ax.set_ylabel(f'Строки (N1 = {N1})')
-
-            cbar = fig.colorbar(im, ax=ax)
-            cbar.set_label('Значение пикселя (0=пора [белый], 255=порода [черный])')
-
-            plt.tight_layout()  
-            plt.show()
-
-    except IOError as e:
-        print(f"Ошибка чтения файла: {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Произошла непредвиденная ошибка: {e}")
-        sys.exit(1)
-
-
-if __name__ == '__main__':
-    FILE_TO_VISUALIZE_IN_PYCHARM = "./images/gen_cylinder_without_pore.raw" 
-
-    read_and_visualize(FILE_TO_VISUALIZE_IN_PYCHARM)
+    ax[0].imshow(ana, cmap='plasma', aspect='auto'); ax[0].set_title("Analytical")
+    plt.colorbar(ax[0].images[0], ax=ax[0])
     
+    ax[1].imshow(num, cmap='plasma', aspect='auto'); ax[1].set_title("Numerical")
+    plt.colorbar(ax[1].images[0], ax=ax[1])
+    
+    im = ax[2].imshow(diff, cmap='Reds', aspect='auto'); ax[2].set_title("Difference")
+    plt.colorbar(im, ax=ax[2])
+    plt.show()
+
+def show_case(pre, tit):
+    mag = load(os.path.join(DIR, f"{pre}_mag.raw"))
+    prs = load(os.path.join(DIR, f"{pre}_pressure.raw"))
+    if mag is None: return
+
+    fig, ax = plt.subplots(2, 1, figsize=(6, 8))
+    fig.suptitle(tit)
+    
+    im0 = ax[0].imshow(mag, cmap='inferno'); ax[0].set_title("Velocity Magnitude |V|")
+    plt.colorbar(im0, ax=ax[0])
+    
+    im1 = ax[1].imshow(prs, cmap='viridis'); ax[1].set_title("Pressure Field")
+    plt.colorbar(im1, ax=ax[1])
+    plt.show()
+
+def main():
+    if not os.path.exists(DIR): return
+    show_comp()
+    show_case("case2_pore", "Task 2: Pore")
+    show_case("case3_sin", "Task 3: Sinusoid")
+    show_case("case4_2d", "Task 4: 2D Raw")
+    show_case("case5_3d", "Task 5: 3D Slice")
+
+if __name__ == "__main__":
+    main()
