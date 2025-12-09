@@ -13,6 +13,7 @@ enum class SliceAxis {
     Z
 };
 
+
 class Picture {
 public:
     Picture();
