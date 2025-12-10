@@ -7,7 +7,6 @@
 #include "Picture.h"
 #include "Matrix.h" 
 #include "CSR3.h"   
-#include "SLAY.h"
 
 using namespace std;
 
@@ -43,9 +42,6 @@ namespace FluidDynamics {
         Matrixes::Matrix velocityY;
 
         Matrixes::CSR3 systemMatrix;
-
-        Matrixes::CholeskyDecomposition momentumFactors; // <-- Добавляем это поле
-        bool isFactorized = false; // Флаг, что мы уже посчитали факторы
 
         void setupDomain();
         void buildSystemMatrix();

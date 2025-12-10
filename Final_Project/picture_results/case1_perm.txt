@@ -1,1 +1,1 @@
-Absolute Permeability: 1.398494e+00
+Absolute Permeability: 2.051282e+01
