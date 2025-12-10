@@ -33,58 +33,82 @@ void saveAnalytical(const string& filename, int Ny, int Nx, double h, double dP)
     }
 }
 
+void savePermeabilityToFile(const string& filename, double k) {
+    ofstream f(filename);
+    if (f.is_open()) {
+        f << "Absolute Permeability: " << scientific << k << endl;
+        f.close();
+        cout << "Saved permeability to " << filename << " (k = " << k << ")" << endl;
+    }
+    else {
+        cerr << "Failed to save permeability to " << filename << endl;
+    }
+}
+// ---------------------
+
+
 int main() {
     string dir = "picture_results";
     if (!fs::exists(dir)) fs::create_directory(dir);
 
-    // Создание файла конфигурации перед запуском
+    // Создание файла конфигурации (как в прошлом шаге)
     {
-        ofstream config("config_dp.raw", ios::binary);
+        ofstream config("config_dp.bin", ios::binary);
         if (config.is_open()) {
             double dp_value = 10.0;
             config.write(reinterpret_cast<const char*>(&dp_value), sizeof(double));
             config.close();
-            cout << "Config file 'config_dp.raw' created with dP = " << dp_value << endl;
-        }
-        else {
-            cerr << "Failed to create config file" << endl;
-            return 1;
         }
     }
 
     try {
-        double myDP = FluidDynamics::StokesSolver::readDeltaP("config_dp.raw");
+        double myDP = FluidDynamics::StokesSolver::readDeltaP("config_dp.bin");
 
+        // --- TASK 1 ---
         {
-            cout << "TASK 1: Poiseuille" << endl;
+            cout << "\nTASK 1: Poiseuille" << endl;
             Picture p; p.createCylinder(40, 15, 0.0); p.addWalls();
             FluidDynamics::StokesSolver s(p, myDP);
-            s.solve(1e-6, 10000);
+            s.solve(1e-6, 10000); // Высокая точность для проверки ошибки
+
             cout << "Error: " << s.validatePoiseuille() * 100 << "%" << endl;
             s.saveResults(dir + "/case1_num");
-            // Используем myDP для аналитического решения, чтобы сравнение было корректным
             saveAnalytical(dir + "/case1_ana_mag.raw", p.getDim1(), p.getDim2(), 1.0, myDP);
+
+            // Расчет и сохранение проницаемости
+            double k = s.calculatePermeability();
+            savePermeabilityToFile(dir + "/case1_perm.txt", k);
         }
 
+        // --- TASK 2 ---
         {
-            cout << "TASK 2: Pore" << endl;
+            cout << "\nTASK 2: Pore" << endl;
             Picture p; p.createCylinderWithPore(40, 40, 18.0, 6.0);
             p.removeIsolatedPores(); p.addWalls();
             FluidDynamics::StokesSolver s(p, myDP + 5.0);
-            s.solve(1e-2, 3000);
+            s.solve(1e-2, 3000); // Ослабленная точность для скорости
             s.saveResults(dir + "/case2_pore");
+
+            // Расчет и сохранение проницаемости
+            double k = s.calculatePermeability();
+            savePermeabilityToFile(dir + "/case2_perm.txt", k);
         }
-        /*
+
+        // --- TASK 3 ---
         {
-            cout << "TASK 3: Sinusoid" << endl;
+            cout << "\nTASK 3: Sinusoid" << endl;
             Picture p; p.createTortuousChannel(50, 25, 8.0, 5.0, 0.15);
             p.addWalls();
             FluidDynamics::StokesSolver s(p, myDP + 10.0);
             s.solve(1e-2, 5000);
             s.saveResults(dir + "/case3_sin");
+
+            // Расчет и сохранение проницаемости
+            double k = s.calculatePermeability();
+            savePermeabilityToFile(dir + "/case3_perm.txt", k);
         }
-        */
-        cout << "Done. Results in " << dir << endl;
+
+        cout << "\nDone. Results in " << dir << endl;
 
     }
     catch (const exception& e) {
