@@ -243,4 +243,101 @@ void StokesSolver::updatePressure(const Matrixes::Matrix& divergence) {
             }
         }
     }
+<<<<<<< Updated upstream
+=======
+    return div;
+}
+
+void StokesSolver::updatePressure(const Matrix& div) {
+    double alpha = 1.0; 
+    for (uint64_t i = 0; i < Ny; ++i) {
+        for (uint64_t j = 1; j < Nx - 1; ++j) {
+            if (domainMask[i][j] == CellType::FLUID) {
+                double p = pressure.get_elem(i, j);
+                double d = div.get_elem(i, j);
+                pressure.set_elem(i, j, p - alpha * d);
+            }
+        }
+    }
+}
+
+void StokesSolver::solve(double tol, int maxIter) {
+    cout << "Stokes Solver Started" << endl;
+    for (int k = 0; k < maxIter; ++k) {
+        solveMomentumEquation();
+        Matrix div = computeDivergence();
+        
+        double maxD = 0.0;
+        for (uint64_t i = 0; i < Ny; ++i)
+            for (uint64_t j = 0; j < Nx; ++j)
+                if (domainMask[i][j] == CellType::FLUID)
+                    maxD = max(maxD, abs(div.get_elem(i, j)));
+
+        if (maxD < tol) {
+            cout << "Converged at " << k << ", Div: " << maxD << endl;
+            break;
+        }
+        updatePressure(div);
+    }
+}
+
+double StokesSolver::calculatePermeability() const {
+    if (abs(deltaP) < 1e-9) return 0.0;
+    double Q = 0.0;
+    int jc = Nx / 2;
+    for (uint64_t i = 0; i < Ny; ++i) Q += velocityX.get_elem(i, jc) * h;
+    return (abs(Q) * 1.0 * (Nx * h)) / ((Ny * h) * abs(deltaP));
+}
+
+double StokesSolver::validatePoiseuille() const {
+    double err2 = 0, ana2 = 0;
+    int jc = Nx / 2;
+    int y1 = 0; while(y1 < Ny && domainMask[y1][jc] == CellType::SOLID) y1++;
+    int y2 = Ny-1; while(y2 >= 0 && domainMask[y2][jc] == CellType::SOLID) y2--;
+    if (y1 > y2) return 0.0;
+    
+    double H_eff = (y2 - y1 + 1) * h;
+    // Исправлено: расстояние для градиента = (Nx-1)*h
+    double gradP = abs(deltaP) / ((Nx - 1) * h);
+
+    for (uint64_t i = 0; i < Ny; ++i) {
+        if (domainMask[i][jc] == CellType::FLUID) {
+            double u_num = velocityX.get_elem(i, jc);
+            double y = (i - y1 + 0.5) * h;
+            double u_ana = (gradP / 2.0) * y * (H_eff - y);
+            err2 += pow(u_num - u_ana, 2);
+            ana2 += pow(u_ana, 2);
+        }
+    }
+    return (ana2 > 0) ? sqrt(err2/ana2) : 0.0;
+}
+
+void StokesSolver::saveResults(const string& prefix) const {
+    auto save = [&](string suffix, const Matrix& m, int R, int C) {
+        ofstream f(prefix + suffix, ios::binary);
+        f.write((char*)&R, 4); f.write((char*)&C, 4);
+        for(int i=0; i<R; ++i)
+            for(int j=0; j<C; ++j) {
+                double v = m.get_elem(i, j);
+                f.write((char*)&v, 8);
+            }
+    };
+
+    save("_pressure.raw", pressure, Ny, Nx);
+    save("_ux.raw", velocityX, Ny, Nx+1);
+    save("_uy.raw", velocityY, Ny+1, Nx);
+
+    ofstream fm(prefix + "_mag.raw", ios::binary);
+    int r = Ny, c = Nx;
+    fm.write((char*)&r, 4); fm.write((char*)&c, 4);
+    for(int i=0; i<r; ++i) {
+        for (int j=0; j<c; ++j) {
+            double ux = 0.5 * (velocityX.get_elem(i, j) + velocityX.get_elem(i, j+1));
+            double uy = 0.5 * (velocityY.get_elem(i, j) + velocityY.get_elem(i+1, j));
+            double mag = sqrt(ux*ux + uy*uy);
+            fm.write((char*)&mag, 8);
+        }
+    }
+    cout << "Saved: " << prefix << "*.raw" << endl;
+>>>>>>> Stashed changes
 }

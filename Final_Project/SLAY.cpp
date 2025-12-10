@@ -118,120 +118,96 @@ namespace Matrixes {
         }
     }
 
-	std::vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const std::vector<double>& b) {
-		int N = A.N;
+    struct SparseElement {
+        int col;
+        double val;
+    };
 
-		if (N != A.M) {
-			throw std::invalid_argument("Error: CSR Matrix must be square.");
-		}
-		if (b.size() != N) {
-			throw std::invalid_argument("Error: Vector b size does not match matrix size.");
-		}
+    std::vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const std::vector<double>& b) {
+        int N = A.N;
+        if (N != A.M) throw std::invalid_argument("Error: CSR Matrix must be square.");
+        if (b.size() != N) throw std::invalid_argument("Error: Vector b size mismatch.");
 
-		std::vector<std::map<int, double>> L_rows(N);
+        std::vector<std::vector<SparseElement>> L_rows(N);
+        std::vector<double> L_diag(N);
+        std::vector<double> dense_row(N, 0.0);
 
-		for (int i = 0; i < N; i++) {
-			std::map<int, double>& current_L_row = L_rows[i];
-			int start_idx = A.rowIndex[i];
-			int end_idx = A.rowIndex[i + 1];
+        for (int i = 0; i < N; ++i) {
+            int start_idx = A.rowIndex[i];
+            int end_idx = A.rowIndex[i + 1];
 
-			for (int k = start_idx; k < end_idx; k++) {
-				int col = A.columns[k];
-				if (col <= i) {
-					current_L_row[col] = A.values[k];
-				}
-			}
+            for (int k = start_idx; k < end_idx; ++k) {
+                int col = A.columns[k];
+                if (col <= i) {
+                    dense_row[col] = A.values[k];
+                }
+            }
 
-			int min_col = (current_L_row.empty()) ? i : current_L_row.begin()->first;
+            for (int j = 0; j < i; ++j) {
+                if (L_rows[j].empty() && std::abs(dense_row[j]) < 1e-15) continue;
 
-			for (int j = min_col; j < i; j++) {
-				double sum = 0.0;
-				for (auto const& [k, val_jk] : L_rows[j]) {
-					if (k >= j) break;
-					if (current_L_row.count(k)) {
-						sum += current_L_row[k] * val_jk;
-					}
-				}
+                double dot = 0.0;
+                for (const auto& item : L_rows[j]) {
+                    dot += item.val * dense_row[item.col];
+                }
 
-				double A_ij = current_L_row.count(j) ? current_L_row[j] : 0.0;
-				double val = (A_ij - sum) / L_rows[j][j];
+                double L_ij = (dense_row[j] - dot) / L_diag[j];
 
-				if (std::abs(val) > 1e-15) {
-					current_L_row[j] = val;
-				}
-				else {
-					current_L_row.erase(j);
-				}
-			}
+                if (std::abs(L_ij) > 1e-15) {
+                    dense_row[j] = L_ij;
+                    L_rows[i].push_back({ j, L_ij });
+                }
+                else {
+                    dense_row[j] = 0.0;
+                }
+            }
 
-			double sum_diag = 0.0;
-			for (auto const& [k, val_ik] : current_L_row) {
-				if (k < i) {
-					sum_diag += val_ik * val_ik;
-				}
-			}
+            double dot_diag = 0.0;
+            for (const auto& item : L_rows[i]) {
+                dot_diag += item.val * item.val;
+            }
 
-			double A_ii = current_L_row.count(i) ? current_L_row[i] : 0.0;
-			double val_sq = A_ii - sum_diag;
+            double val_sq = dense_row[i] - dot_diag;
+            if (val_sq <= 0) {
+                throw std::runtime_error("Cholesky Error: Matrix not positive definite at row " + std::to_string(i));
+            }
+            L_diag[i] = std::sqrt(val_sq);
 
-			if (val_sq <= 0) {
-				throw std::runtime_error("Cholesky Error: Matrix is not positive definite at row " + std::to_string(i));
-			}
+            dense_row[i] = 0.0;
+            for (const auto& item : L_rows[i]) dense_row[item.col] = 0.0;
 
-			current_L_row[i] = std::sqrt(val_sq);
-		}
+            for (int k = start_idx; k < end_idx; ++k) {
+                int col = A.columns[k];
+                if (col <= i) dense_row[col] = 0.0;
+            }
+        }
 
-		std::vector<double> y(N, 0.0);
-		for (int i = 0; i < N; i++) {
-			double sum = 0.0;
-			for (auto const& [k, val_ik] : L_rows[i]) {
-				if (k < i) {
-					sum += val_ik * y[k];
-				}
-			}
-			y[i] = (b[i] - sum) / L_rows[i][i];
-		}
+        std::vector<double> y(N, 0.0);
+        for (int i = 0; i < N; ++i) {
+            double sum = 0.0;
+            for (const auto& item : L_rows[i]) {
+                sum += item.val * y[item.col];
+            }
+            y[i] = (b[i] - sum) / L_diag[i];
+        }
 
-		std::vector<std::map<int, double>> LT_rows(N);
-		for (int i = 0; i < N; i++) {
-			for (auto const& [j, val] : L_rows[i]) {
-				LT_rows[j][i] = val;
-			}
-		}
+        std::vector<std::vector<SparseElement>> LT_rows(N);
+        for (int i = 0; i < N; ++i) {
+            for (const auto& item : L_rows[i]) {
+                LT_rows[item.col].push_back({ i, item.val });
+            }
+        }
 
-		std::vector<double> x = y;
-		for (int i = N - 1; i >= 0; i--) {
-			double sum = 0.0;
-			for (auto const& [k, val_ik] : LT_rows[i]) {
-				if (k > i) {
-					sum += val_ik * x[k];
-				}
-			}
-			x[i] = (y[i] - sum) / LT_rows[i][i];
-		}
+        std::vector<double> x = y;
+        for (int i = N - 1; i >= 0; --i) {
+            double sum = 0.0;
+            for (const auto& item : LT_rows[i]) {
+                sum += item.val * x[item.col];
+            }
+            x[i] = (y[i] - sum) / L_diag[i];
+        }
 
-		double norm_b = get_vec_norm(b);
-		if (norm_b < 1e-16) norm_b = 1.0;
-
-		std::vector<double> residual(N);
-		for (int i = 0; i < N; ++i) {
-			double Ax_i = 0.0;
-			for (int k = A.rowIndex[i]; k < A.rowIndex[i + 1]; ++k) {
-				int col = A.columns[k];
-				double val = A.values[k];
-				Ax_i += val * x[col];
-			}
-			residual[i] = b[i] - Ax_i;
-		}
-
-		double norm_res = get_vec_norm(residual);
-		double rel_error = norm_res / norm_b;
-
-		if (rel_error > 1e-8) {
-			throw std::runtime_error("CSR Solution accuracy check failed. Relative error: " + std::to_string(rel_error));
-		}
-
-		return x;
-	}
+        return x;
+    }
 
 }
