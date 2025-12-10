@@ -289,24 +289,25 @@ double StokesSolver::calculatePermeability() const {
 double StokesSolver::validatePoiseuille() const {
     double err2 = 0, ana2 = 0;
     int jc = Nx / 2;
-    int y1 = 0; while(y1 < Ny && domainMask[y1][jc] == CellType::SOLID) y1++;
-    int y2 = Ny-1; while(y2 >= 0 && domainMask[y2][jc] == CellType::SOLID) y2--;
+    int y1 = 0; while (y1 < Ny && domainMask[y1][jc] == CellType::SOLID) y1++;
+    int y2 = Ny - 1; while (y2 >= 0 && domainMask[y2][jc] == CellType::SOLID) y2--;
+
     if (y1 > y2) return 0.0;
-    
-    double H_eff = (y2 - y1 + 1) * h;
-    // Исправлено: расстояние для градиента = (Nx-1)*h
+
+    double H_eff = (y2 - y1 + 2.0) * h;
+    double y_start = (y1 - 0.5) * h;
     double gradP = abs(deltaP) / ((Nx - 1) * h);
 
     for (uint64_t i = 0; i < Ny; ++i) {
         if (domainMask[i][jc] == CellType::FLUID) {
             double u_num = velocityX.get_elem(i, jc);
-            double y = (i - y1 + 0.5) * h;
-            double u_ana = (gradP / 2.0) * y * (H_eff - y);
+            double y_coord = i * h - y_start;
+            double u_ana = (gradP / 2.0) * y_coord * (H_eff - y_coord);
             err2 += pow(u_num - u_ana, 2);
             ana2 += pow(u_ana, 2);
         }
     }
-    return (ana2 > 0) ? sqrt(err2/ana2) : 0.0;
+    return (ana2 > 0) ? sqrt(err2 / ana2) : 0.0;
 }
 
 void StokesSolver::saveResults(const string& prefix) const {
