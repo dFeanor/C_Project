@@ -18,6 +18,8 @@ namespace FluidDynamics {
     public:
         StokesSolver(const Picture& picture, double dP);
 
+        static double readDeltaP(const std::string& filename);
+
         void solve(double tolerance = 1e-6, int maxIterations = 20000);
 
         double calculatePermeability() const;
@@ -46,7 +48,7 @@ namespace FluidDynamics {
         void solveMomentumEquation();
         Matrixes::Matrix computeDivergence() const;
         void updatePressure(const Matrixes::Matrix& divergence);
-        
+        void applyWallBoundaryConditions();
         bool isUxActive(uint64_t i, uint64_t j) const;
         bool isUyActive(uint64_t i, uint64_t j) const;
     };

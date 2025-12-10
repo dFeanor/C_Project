@@ -161,16 +161,19 @@ void StokesSolver::solveMomentumEquation() {
     vector<double> rhs(total, 0.0);
 
     for (uint64_t i = 0; i < Ny; ++i) {
-        for (uint64_t j = 1; j < Nx; ++j) { 
+        for (uint64_t j = 0; j <= Nx; ++j) {
             if (isUxActive(i, j)) {
-                rhs[i*(Nx+1)+j] = (pressure.get_elem(i, j-1) - pressure.get_elem(i, j)) / h;
+                double p_left = (j == 0) ? deltaP : pressure.get_elem(i, j - 1);
+                double p_right = (j == Nx) ? 0.0 : pressure.get_elem(i, j);
+                rhs[i * (Nx + 1) + j] = (p_left - p_right) / h;
             }
         }
     }
+
     for (uint64_t i = 1; i < Ny; ++i) {
         for (uint64_t j = 0; j < Nx; ++j) {
             if (isUyActive(i, j)) {
-                rhs[numU+i*Nx+j] = (pressure.get_elem(i-1, j) - pressure.get_elem(i, j)) / h;
+                rhs[numU + i * Nx + j] = (pressure.get_elem(i - 1, j) - pressure.get_elem(i, j)) / h;
             }
         }
     }
@@ -220,7 +223,7 @@ void StokesSolver::solve(double tol, int maxIter) {
     for (int k = 0; k < maxIter; ++k) {
         solveMomentumEquation();
         Matrix div = computeDivergence();
-        
+
         double maxD = 0.0;
         for (uint64_t i = 0; i < Ny; ++i)
             for (uint64_t j = 0; j < Nx; ++j)
@@ -232,7 +235,47 @@ void StokesSolver::solve(double tol, int maxIter) {
             break;
         }
         updatePressure(div);
+        applyWallBoundaryConditions();
     }
+}
+
+void StokesSolver::applyWallBoundaryConditions() {
+    for (uint64_t i = 0; i < Ny; ++i) {
+        for (uint64_t j = 0; j < Nx; ++j) {
+            if (domainMask[i][j] == CellType::SOLID) {
+                if (i > 0 && domainMask[i - 1][j] == CellType::FLUID) {
+                    pressure.set_elem(i, j, pressure.get_elem(i - 1, j));
+                }
+                else if (i < Ny - 1 && domainMask[i + 1][j] == CellType::FLUID) {
+                    pressure.set_elem(i, j, pressure.get_elem(i + 1, j));
+                }
+                else if (j > 0 && domainMask[i][j - 1] == CellType::FLUID) {
+                    pressure.set_elem(i, j, pressure.get_elem(i, j - 1));
+                }
+                else if (j < Nx - 1 && domainMask[i][j + 1] == CellType::FLUID) {
+                    pressure.set_elem(i, j, pressure.get_elem(i, j + 1));
+                }
+            }
+        }
+    }
+}
+
+double StokesSolver::readDeltaP(const string& filename) {
+    ifstream f(filename, ios::binary);
+    if (!f.is_open()) {
+        throw runtime_error("Failed to open dP file: " + filename);
+    }
+
+    double dP_val;
+    f.read(reinterpret_cast<char*>(&dP_val), sizeof(double));
+
+    if (!f) {
+        throw runtime_error("Error reading dP from file: " + filename);
+    }
+
+    f.close();
+    cout << "Read dP = " << dP_val << " from " << filename << endl;
+    return dP_val;
 }
 
 double StokesSolver::calculatePermeability() const {
