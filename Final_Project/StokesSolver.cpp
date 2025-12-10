@@ -138,6 +138,11 @@ void StokesSolver::buildSystemMatrix() {
         systemMatrix.rowIndex[i + 1] = count;
     }
     systemMatrix.L = count;
+
+    cout << "Factorizing matrix (" << systemMatrix.M << "x" << systemMatrix.N << ")... " << flush;
+    momentumFactors = SLAYSolver::factorize(systemMatrix);
+    isFactorized = true;
+    cout << "Done." << endl;
 }
 
 bool StokesSolver::checkMatrixSymmetry(double tol) const {
@@ -178,7 +183,10 @@ void StokesSolver::solveMomentumEquation() {
         }
     }
 
-    vector<double> sol = SLAYSolver::solve_cholesky(systemMatrix, rhs);
+    if (!isFactorized) {
+        throw runtime_error("Matrix not factorized!");
+    }
+    vector<double> sol = SLAYSolver::solve_from_factors(momentumFactors, rhs);
 
     for (uint64_t i = 0; i < Ny; ++i)
         for (uint64_t j = 0; j < Nx + 1; ++j)

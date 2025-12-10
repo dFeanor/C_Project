@@ -123,7 +123,124 @@ namespace Matrixes {
         double val;
     };
 
-    std::vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const std::vector<double>& b) {
+    // 1. ЭТАП ФАКТОРИЗАЦИИ (Тяжелая часть, выполняется 1 раз)
+    CholeskyDecomposition SLAYSolver::factorize(const CSR3& A) {
+        int N = A.N;
+        if (N != A.M) throw invalid_argument("Matrix must be square");
+
+        CholeskyDecomposition cd;
+        cd.N = N;
+        cd.L_rows.resize(N);
+        cd.L_diag.resize(N);
+
+        vector<double> dense_row(N, 0.0);
+
+        for (int i = 0; i < N; ++i) {
+            // Распаковка строки i матрицы A
+            int start_idx = A.rowIndex[i];
+            int end_idx = A.rowIndex[i + 1];
+
+            // Оптимизация: список индексов для очистки
+            vector<int> dirty_indices;
+            dirty_indices.reserve(end_idx - start_idx + 64);
+
+            for (int k = start_idx; k < end_idx; ++k) {
+                int col = A.columns[k];
+                if (col <= i) {
+                    dense_row[col] = A.values[k];
+                    dirty_indices.push_back(col);
+                }
+            }
+
+            // Вычисление строки L
+            for (int j = 0; j < i; ++j) {
+                if (std::abs(dense_row[j]) < 1e-15) continue;
+
+                double dot = 0.0;
+                for (const auto& item : cd.L_rows[j]) {
+                    dot += item.second * dense_row[item.first];
+                }
+
+                double L_ij = (dense_row[j] - dot) / cd.L_diag[j];
+
+                if (std::abs(L_ij) > 1e-15) {
+                    dense_row[j] = L_ij;
+                    cd.L_rows[i].push_back({ j, L_ij });
+                    dirty_indices.push_back(j);
+                }
+                else {
+                    dense_row[j] = 0.0;
+                }
+            }
+
+            // Диагональ
+            double dot_diag = 0.0;
+            for (const auto& item : cd.L_rows[i]) {
+                dot_diag += item.second * item.second;
+            }
+
+            double val_sq = dense_row[i] - dot_diag;
+            if (val_sq <= 0) throw runtime_error("Not positive definite at row " + to_string(i));
+            cd.L_diag[i] = sqrt(val_sq);
+
+            // Очистка
+            for (int idx : dirty_indices) dense_row[idx] = 0.0;
+            dense_row[i] = 0.0;
+        }
+        return cd;
+    }
+
+    // 2. ЭТАП ПОДСТАНОВКИ (Быстрая часть, выполняется в цикле)
+    vector<double> SLAYSolver::solve_from_factors(const CholeskyDecomposition& cd, const vector<double>& b) {
+        int N = cd.N;
+        vector<double> y(N, 0.0);
+
+        // Прямой ход
+        for (int i = 0; i < N; ++i) {
+            double sum = 0.0;
+            for (const auto& item : cd.L_rows[i]) {
+                sum += item.second * y[item.first];
+            }
+            y[i] = (b[i] - sum) / cd.L_diag[i];
+        }
+
+        // Обратный ход
+        // Для этого нам нужен L^T. Поскольку мы храним L строками, 
+        // итерация по столбцам L (что равно строкам L^T) неудобна.
+        // Построим быстрый доступ к столбцам L "на лету" или используем транспонирование.
+        // Чтобы не усложнять структуру данных, построим транспонированную структуру тут.
+        // Это O(NNZ), что намного быстрее факторизации.
+
+        // Примечание: Для супер-оптимизации транспонирование можно сделать тоже 1 раз и хранить в CholeskyDecomposition.
+        // Но даже так будет быстро.
+
+        vector<vector<pair<int, double>>> LT_rows(N);
+        for (int i = 0; i < N; ++i) {
+            for (const auto& item : cd.L_rows[i]) {
+                // L_ij переходит в LT_ji
+                LT_rows[item.first].push_back({ i, item.second });
+            }
+        }
+
+        vector<double> x = y;
+        for (int i = N - 1; i >= 0; --i) {
+            double sum = 0.0;
+            for (const auto& item : LT_rows[i]) {
+                sum += item.second * x[item.first];
+            }
+            x[i] = (y[i] - sum) / cd.L_diag[i];
+        }
+
+        return x;
+    }
+
+    // Старая обертка, чтобы не сломать совместимость
+    vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const vector<double>& b) {
+        auto factors = factorize(A);
+        return solve_from_factors(factors, b);
+    }
+
+    /*std::vector<double> SLAYSolver::solve_cholesky(const CSR3& A, const std::vector<double>& b) {
         int N = A.N;
         if (N != A.M) throw std::invalid_argument("Error: CSR Matrix must be square.");
         if (b.size() != N) throw std::invalid_argument("Error: Vector b size mismatch.");
@@ -209,5 +326,5 @@ namespace Matrixes {
 
         return x;
     }
-
+    */
 }

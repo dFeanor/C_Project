@@ -53,7 +53,7 @@ int main() {
 
     // Создание файла конфигурации (как в прошлом шаге)
     {
-        ofstream config("config_dp.bin", ios::binary);
+        ofstream config("config_dp.raw", ios::binary);
         if (config.is_open()) {
             double dp_value = 10.0;
             config.write(reinterpret_cast<const char*>(&dp_value), sizeof(double));
@@ -62,7 +62,7 @@ int main() {
     }
 
     try {
-        double myDP = FluidDynamics::StokesSolver::readDeltaP("config_dp.bin");
+        double myDP = FluidDynamics::StokesSolver::readDeltaP("config_dp.raw");
 
         // --- TASK 1 ---
         {
