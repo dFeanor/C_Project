@@ -7,10 +7,12 @@
 using namespace std;
 
 namespace Matrixes {
+	class SLAYSolver;
 	class CSR3 {
 		vector<double> values;
 		vector<int> columns;
 		vector<int> rowIndex;
+	friend class SLAYSolver;
 	public:
 		int M;
 		int N;
